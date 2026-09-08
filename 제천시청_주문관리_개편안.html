@@ -1,0 +1,283 @@
+<!-- 보관용: 운영본이 아닙니다. 운영은 수요자_주문사이트.html / 공급자_납품사이트.html 을 사용하세요. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제천시청 전용 주문관리 사이트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--navy:#0c3461;--blue:#0a7065;--blue2:#0d9488;--sky:#e6f7f5;--line:#b2dcd8;--herb:#3d7a3a;--gold:#b87333}
+*{font-family:'Pretendard',sans-serif;box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#f0faf8 0%,#eaf4f0 100%);min-height:100vh}
+.nav-glass{background:linear-gradient(135deg,rgba(12,52,97,0.97) 0%,rgba(10,112,101,0.93) 100%);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.1)}
+.btn-primary{background:linear-gradient(135deg,var(--blue2) 0%,#0a5e56 100%);color:#fff;border:none;cursor:pointer;transition:all .2s;border-radius:12px;padding:10px 16px;font-weight:600;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(13,148,136,.4)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue2);color:var(--blue2);cursor:pointer;transition:all .2s;border-radius:10px;padding:8px 14px;font-weight:600;}
+.btn-outline:hover{background:var(--sky)}
+.card-base{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 4px 14px rgba(29,95,168,.05)}
+.product-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;transition:all .2s;cursor:pointer;}
+.product-card:hover{box-shadow:0 4px 14px rgba(29,95,168,.1);border-color:var(--blue2);}
+.cat-tab{padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);transition:all .2s;background:#fff;white-space:nowrap;}
+.cat-tab.active{background:var(--blue2);color:#fff;border-color:var(--blue2)}
+.input-base{border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;width:100%;outline:none;transition:border-color .2s;background:#fff}
+.input-base:focus{border-color:var(--blue2)}
+.status-badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700}
+</style>
+</head>
+<body class="text-gray-800 pb-20">
+<div id="app"></div>
+
+<script>
+// 기본 설정 데이터
+const ORDER_TYPES = {
+    furniture: '사무용가구', 
+    toner: '토너·소모품', 
+    banner: '현수막', 
+    construction: '수선·공사'
+};
+const ORDER_ICONS = {
+    furniture: '🪑', 
+    toner: '🖨️', 
+    banner: '🪧', 
+    construction: '🔧'
+};
+
+const CONTRACT_GUIDE = [
+  {max: 1000000, label: '✅ 즉시 구매 가능 (100만원 이하)', cls: 'text-green-700 bg-green-50 border-green-200'},
+  {max: 5000000, label: '📋 수의 1인 견적 필요 (500만원 이하)', cls: 'text-yellow-700 bg-yellow-50 border-yellow-200'},
+  {max: 20000000, label: '⚠️ 수의 2인 이상 견적 필요 (2000만원 이하)', cls: 'text-orange-700 bg-orange-50 border-orange-200'},
+  {max: Infinity, label: '🔴 경쟁입찰 필요 (2000만원 초과)', cls: 'text-red-700 bg-red-50 border-red-200'}
+];
+
+// 카탈로그 데이터 생성 (기타 방문요청 포함)
+function generateCatalog() {
+    const etcItem = { id: 'etc_visit', name: '기타(방문요청)', spec: '현장 확인', price: 0, unit: '건', icon: '🏃‍♂️', desc: '사진 확인 후 방문 견적' };
+    
+    return [
+        { cat: 'furniture', items: [
+            {id:'pf1', name:'사무용 의자', spec:'메쉬, 등받이 조절', price:180000, unit:'개', icon:'🪑', desc:'조립배송'},
+            {id:'pf2', name:'사무용 책상', spec:'1400×700mm', price:220000, unit:'개', icon:'🖥️', desc:'MDF'},
+            {id:'pf3', name:'이동식 파티션', spec:'H1800×W900mm', price:150000, unit:'개', icon:'🚧', desc:'패브릭'},
+            {id:'pf4', name:'4단 스틸 캐비닛', spec:'잠금장치', price:280000, unit:'개', icon:'🗄️', desc:'철재'},
+            {...etcItem, id: 'furniture_etc'}
+        ]},
+        { cat: 'toner', items: [
+            {id:'pt1', name:'HP 흑백 토너', spec:'CF217A', price:28000, unit:'개', icon:'🖨️', desc:'정품'},
+            {id:'pt2', name:'삼성 흑백 토너', spec:'MLT-D101S', price:25000, unit:'개', icon:'🖨️', desc:'정품'},
+            {...etcItem, id: 'toner_etc'}
+        ]},
+        { cat: 'banner', items: [
+            {id:'pb1', name:'지정게시대 현수막', spec:'규격통일', price:55000, unit:'개', icon:'🪧', desc:'시공포함'},
+            {...etcItem, id: 'banner_etc'}
+        ]}
+    ];
+}
+
+const State = {
+    view: 'catalog',
+    category: 'furniture',
+    cart: [],
+    catalog: generateCatalog()
+};
+
+function comma(num) {
+    return Number(num || 0).toLocaleString();
+}
+
+function renderNav() {
+    return `
+    <nav class="nav-glass sticky top-0 z-50 p-4 flex justify-between items-center">
+        <div class="text-white font-bold text-lg flex items-center gap-2">
+            <span class="text-2xl">🏛️</span> 제천시청 맞춤형 주문관리
+        </div>
+        <div class="flex gap-4">
+            <button onclick="changeView('catalog')" class="text-white hover:text-blue-200 font-medium">🛒 카탈로그</button>
+            <button onclick="changeView('cart')" class="text-white hover:text-blue-200 font-medium relative">
+                🛍️ 장바구니
+                ${State.cart.length > 0 ? `<span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">${State.cart.length}</span>` : ''}
+            </button>
+        </div>
+    </nav>`;
+}
+
+function renderCatalog() {
+    const tabs = Object.keys(ORDER_TYPES).map(key => {
+        const isActive = State.category === key;
+        return `<button onclick="setCategory('${key}')" class="cat-tab ${isActive ? 'active' : ''}">${ORDER_ICONS[key] || ''} ${ORDER_TYPES[key]}</button>`;
+    }).join('');
+
+    const catData = State.catalog.find(c => c.cat === State.category);
+    const items = catData ? catData.items : [];
+    
+    const itemsHtml = items.map(item => `
+        <div class="product-card flex flex-col justify-between" onclick="addToCart('${item.id}')">
+            <div>
+                <div class="text-4xl mb-3 text-center">${item.icon}</div>
+                <div class="font-bold text-lg mb-1">${item.name}</div>
+                <div class="text-sm text-gray-500 mb-2">${item.spec}</div>
+                <div class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded inline-block">${item.desc}</div>
+            </div>
+            <div class="mt-4 flex justify-between items-end">
+                <div class="font-bold text-blue-700">${item.price === 0 ? '견적문의' : comma(item.price) + '원'}</div>
+                <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-bold transition-colors">담기</button>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+    <div class="p-6 max-w-5xl mx-auto">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">품목 선택</h2>
+        <div class="flex gap-3 overflow-x-auto pb-4 mb-4">
+            ${tabs}
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            ${itemsHtml}
+        </div>
+    </div>`;
+}
+
+function renderCart() {
+    if (State.cart.length === 0) {
+        return `<div class="p-10 text-center text-gray-500 max-w-3xl mx-auto mt-10 card-base">장바구니가 비어있습니다.</div>`;
+    }
+
+    let total = 0;
+    const cartHtml = State.cart.map((item, index) => {
+        total += item.price * item.qty;
+        return `
+        <div class="flex justify-between items-center p-4 border-b border-gray-100">
+            <div class="flex items-center gap-4">
+                <div class="text-3xl">${item.icon}</div>
+                <div>
+                    <div class="font-bold">${item.name}</div>
+                    <div class="text-sm text-gray-500">${item.spec}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <button onclick="updateQty(${index}, -1)" class="w-8 h-8 rounded-full bg-gray-100 font-bold">-</button>
+                    <span class="w-8 text-center font-bold">${item.qty}</span>
+                    <button onclick="updateQty(${index}, 1)" class="w-8 h-8 rounded-full bg-gray-100 font-bold">+</button>
+                </div>
+                <div class="font-bold text-right w-24">${item.price === 0 ? '견적문의' : comma(item.price * item.qty) + '원'}</div>
+                <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-600">✖</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    // 수의계약 한도 가이드
+    let guide = CONTRACT_GUIDE[CONTRACT_GUIDE.length - 1];
+    for (let g of CONTRACT_GUIDE) {
+        if (total <= g.max) {
+            guide = g;
+            break;
+        }
+    }
+
+    return `
+    <div class="p-6 max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">장바구니 / 주문하기</h2>
+        
+        <div class="card-base mb-6">
+            ${cartHtml}
+            <div class="p-4 bg-gray-50 mt-4 rounded-xl flex justify-between items-center">
+                <span class="font-bold text-gray-600">총 예상 금액</span>
+                <span class="font-bold text-2xl text-blue-700">${comma(total)}원</span>
+            </div>
+            
+            <div class="mt-4 p-4 rounded-lg border ${guide.cls} font-bold flex items-center gap-2">
+                ${guide.label}
+            </div>
+        </div>
+
+        <div class="card-base mb-6">
+            <h3 class="font-bold text-lg mb-4">추가 정보 입력</h3>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">희망 납품일</label>
+                <input type="date" class="input-base">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">요청사항</label>
+                <textarea class="input-base h-24" placeholder="배송이나 설치에 필요한 특별한 요청사항을 적어주세요."></textarea>
+            </div>
+
+            <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <label class="text-sm font-semibold text-gray-700 block mb-2">📷 현장 사진 첨부 (선택)</label>
+                <input type="file" accept="image/*" multiple class="w-full text-sm file:mr-3 file:py-2 file:px-4 file:border-0 file:bg-[#0d9488] file:text-white file:rounded-md cursor-pointer file:font-bold">
+                <p class="text-xs text-gray-500 mt-2">※ 복잡한 도면이나 예산액 입력 없이, 설치 공간이나 기존 물품 사진을 올려주시면 현장 방문 후 빠르게 처리해 드려요. (다중 선택 가능)</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button onclick="submitOrder()" class="btn-primary text-lg px-12 py-4 w-full shadow-lg">주문/방문 요청 접수하기</button>
+        </div>
+    </div>`;
+}
+
+function updateApp() {
+    const app = document.getElementById('app');
+    let content = renderNav();
+    if (State.view === 'catalog') content += renderCatalog();
+    else if (State.view === 'cart') content += renderCart();
+    app.innerHTML = content;
+}
+
+// Actions
+function changeView(view) {
+    State.view = view;
+    updateApp();
+}
+
+function setCategory(cat) {
+    State.category = cat;
+    updateApp();
+}
+
+function addToCart(itemId) {
+    let itemData = null;
+    State.catalog.forEach(cat => {
+        const found = cat.items.find(i => i.id === itemId);
+        if (found) itemData = found;
+    });
+    
+    if (itemData) {
+        const existing = State.cart.find(i => i.id === itemId);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            State.cart.push({...itemData, qty: 1});
+        }
+        alert(itemData.name + '이(가) 장바구니에 담겼습니다.');
+        updateApp();
+    }
+}
+
+function updateQty(index, delta) {
+    State.cart[index].qty += delta;
+    if (State.cart[index].qty <= 0) {
+        State.cart.splice(index, 1);
+    }
+    updateApp();
+}
+
+function removeFromCart(index) {
+    State.cart.splice(index, 1);
+    updateApp();
+}
+
+function submitOrder() {
+    if (State.cart.length === 0) return;
+    alert('✅ 성공적으로 주문(방문요청)이 접수되었습니다! 담당자가 빠르게 확인 후 연락드리겠습니다.');
+    State.cart = [];
+    changeView('catalog');
+}
+
+// Init
+window.onload = updateApp;
+</script>
+</body>
+</html>

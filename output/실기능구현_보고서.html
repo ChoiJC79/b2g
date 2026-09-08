@@ -1,0 +1,505 @@
+<title>실기능 구현 보고서 — 제천 B2G 납품관리</title>
+<style>
+  :root{
+    --bg:#eef5f3;
+    --bg-grad-a:#f6fbfa;
+    --bg-grad-b:#e2eeea;
+    --surface:#ffffff;
+    --surface-2:#f2f7f6;
+    --line:#d7e6e2;
+    --line-strong:#b9d8d1;
+    --ink:#0c2233;
+    --muted:#5c6f72;
+    --navy:#0c3461;
+    --accent:#0d9488;
+    --accent-deep:#0a7065;
+    --gold:#9a6207;
+    --gold-bg:#faf0da;
+    --gold-line:#e3c581;
+    --paper-bg:#ffffff;
+    --paper-ink:#161616;
+    --paper-shadow:0 24px 50px -24px rgba(12,52,97,.38), 0 2px 8px rgba(12,52,97,.08);
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+    --r-lg:20px;
+    --r-md:14px;
+    --r-sm:9px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0a161c;
+      --bg-grad-a:#0c1b22;
+      --bg-grad-b:#08131a;
+      --surface:#101f27;
+      --surface-2:#0c1920;
+      --line:#1e343c;
+      --line-strong:#2b4a52;
+      --ink:#dcebee;
+      --muted:#8fa6ab;
+      --navy:#bcdcff;
+      --accent:#39d6c4;
+      --accent-deep:#7de9db;
+      --gold:#e8bb5b;
+      --gold-bg:#26200f;
+      --gold-line:#5a4a1f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a161c; --bg-grad-a:#0c1b22; --bg-grad-b:#08131a;
+    --surface:#101f27; --surface-2:#0c1920;
+    --line:#1e343c; --line-strong:#2b4a52;
+    --ink:#dcebee; --muted:#8fa6ab;
+    --navy:#bcdcff; --accent:#39d6c4; --accent-deep:#7de9db;
+    --gold:#e8bb5b; --gold-bg:#26200f; --gold-line:#5a4a1f;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef5f3; --bg-grad-a:#f6fbfa; --bg-grad-b:#e2eeea;
+    --surface:#ffffff; --surface-2:#f2f7f6;
+    --line:#d7e6e2; --line-strong:#b9d8d1;
+    --ink:#0c2233; --muted:#5c6f72;
+    --navy:#0c3461; --accent:#0d9488; --accent-deep:#0a7065;
+    --gold:#9a6207; --gold-bg:#faf0da; --gold-line:#e3c581;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, var(--bg-grad-a) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-grad-a) 0%, var(--bg-grad-b) 100%);
+    background-color:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 96px;}
+
+  /* ── Masthead ── */
+  .masthead{
+    padding:52px 0 28px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent-deep);
+    font-weight:600;
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  h1.title{
+    font-size:clamp(28px,4vw,38px);
+    font-weight:800;
+    letter-spacing:-.01em;
+    text-wrap:balance;
+    color:var(--navy);
+    margin:10px 0 8px;
+  }
+  .lede{
+    font-size:15.5px;
+    color:var(--muted);
+    max-width:62ch;
+    margin:0 0 18px;
+  }
+  .meta-row{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);font-family:var(--mono);}
+  .meta-row b{color:var(--ink);font-weight:600;}
+
+  /* ── Sticky section nav ── */
+  .secnav{
+    position:sticky; top:0; z-index:20;
+    display:flex; gap:4px; overflow-x:auto;
+    padding:10px 0; margin-bottom:34px;
+    background:linear-gradient(180deg, var(--bg-grad-a) 65%, transparent);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    scrollbar-width:none;
+  }
+  .secnav::-webkit-scrollbar{display:none;}
+  .secnav a{
+    flex-shrink:0;
+    font-size:12px; font-weight:600;
+    color:var(--muted);
+    text-decoration:none;
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    white-space:nowrap;
+    transition:color .15s, border-color .15s;
+  }
+  .secnav a:hover{color:var(--accent-deep); border-color:var(--line-strong);}
+
+  /* ── Sections ── */
+  section{margin-bottom:52px; scroll-margin-top:56px;}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:16px;}
+  .sec-num{font-family:var(--mono); font-size:12px; color:var(--accent-deep); font-weight:700;}
+  h2{font-size:21px; font-weight:800; letter-spacing:-.005em; margin:0; color:var(--ink);}
+  .sec-note{font-size:13.5px; color:var(--muted); margin:-6px 0 20px; max-width:66ch;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--r-lg);
+    padding:22px;
+    box-shadow:0 8px 24px -18px rgba(12,52,97,.2);
+  }
+
+  /* ── Tables ── */
+  .tbl-scroll{overflow-x:auto; border-radius:var(--r-md); border:1px solid var(--line);}
+  table{width:100%; border-collapse:collapse; font-size:13px; background:var(--surface);}
+  thead th{
+    background:var(--surface-2);
+    color:var(--navy);
+    text-align:left;
+    font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+    font-weight:700;
+    padding:10px 12px;
+    border-bottom:1px solid var(--line-strong);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  td.num, th.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums;}
+  td.fill{background:repeating-linear-gradient(135deg, var(--gold-bg), var(--gold-bg) 6px, transparent 6px, transparent 12px); color:var(--gold); font-weight:700; font-size:12px;}
+  .status-pill{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px;
+  }
+  .status-done{background:#e4f5ef; color:#0a7a53;}
+  .status-need{background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line);}
+
+  /* ── Checklist ── */
+  .checklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .checklist li{
+    display:grid; grid-template-columns:22px 1fr; gap:12px;
+    padding:13px 14px; border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface);
+  }
+  .checklist .box{
+    width:20px;height:20px;border-radius:6px;border:1.75px solid var(--gold-line);
+    background:var(--gold-bg); margin-top:1px;
+  }
+  .checklist .lbl{font-weight:700; font-size:14px; color:var(--ink);}
+  .checklist .desc{font-size:12.5px; color:var(--muted); margin-top:2px;}
+  .checklist .tag{
+    font-family:var(--mono); font-size:10.5px; color:var(--gold); background:var(--gold-bg);
+    border:1px solid var(--gold-line); padding:1px 7px; border-radius:6px; margin-left:8px;
+  }
+
+  /* ── Document facsimile (실제 인쇄 미리보기) ── */
+  .doc-frame{ padding:26px 0 8px; }
+  .doc-frame .doc-label{
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-bottom:10px;
+  }
+  .doc-frame .doc-label .live{color:var(--accent-deep); font-weight:700;}
+  .paper{
+    background:var(--paper-bg); color:var(--paper-ink);
+    border-radius:6px;
+    box-shadow:var(--paper-shadow);
+    padding:34px 38px;
+    max-width:640px; margin:0 auto;
+    font-size:12.5px;
+  }
+  .paper h3.doc-title{
+    text-align:center; font-size:21px; letter-spacing:9px; font-weight:800;
+    border-bottom:3px solid #07182f; padding-bottom:11px; margin:0 0 18px; color:#07182f;
+  }
+  .paper .r2{display:flex; gap:16px; margin-bottom:14px;}
+  .paper .bx{flex:1; border:1px solid #ddd; padding:10px 12px; border-radius:8px; font-size:11.5px;}
+  .paper .bx strong{display:block; font-size:9.5px; color:#888; margin-bottom:4px; font-weight:700;}
+  .paper table{font-size:11.5px;}
+  .paper thead th{background:#07182f; color:#fff; padding:7px 9px; font-size:11px; text-transform:none; letter-spacing:0; border:none;}
+  .paper tbody td{padding:6px 9px; border-bottom:1px solid #eee; color:#161616;}
+  .paper .tot{text-align:right; margin-top:9px; border-top:2px solid #07182f; padding-top:9px;}
+  .paper .tr{display:flex; justify-content:flex-end; gap:36px; margin:2px 0; font-size:12px;}
+  .paper .grand{font-size:16px; font-weight:900; color:#07182f;}
+  .paper .sig{display:flex; justify-content:flex-end; gap:14px; margin-top:26px;}
+  .paper .sb{border:1px solid #ccc; padding:10px 18px; text-align:center; border-radius:8px; min-height:58px; width:150px; font-size:11px;}
+  .paper .sb .cap{font-size:9.5px; color:#888; margin-bottom:14px; display:block;}
+  .paper .note{font-size:10.5px; color:#777; margin-top:10px;}
+
+  /* ── Design mockups ── */
+  .banner-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.banner-grid{grid-template-columns:1fr;}}
+  .banner-card{border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden; background:var(--surface);}
+  .banner-card .bc-head{padding:10px 14px; font-size:12px; font-weight:700; display:flex; justify-content:space-between; align-items:center;}
+  .banner-mock{
+    aspect-ratio:500/90; width:100%;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:4%;
+  }
+  .banner-mock.herb{background:linear-gradient(135deg,#e8f3e2,#cfe8bd 55%,#a8d488); }
+  .banner-mock.herb .bt{color:#274d1a;}
+  .banner-mock.formal{background:linear-gradient(135deg,#0c3461,#123f7a 60%,#1d5fa8);}
+  .banner-mock.formal .bt{color:#fff;}
+  .bt{font-weight:900; line-height:1.3;}
+  .bt .l1{font-size:clamp(11px,2.6vw,17px); letter-spacing:-.01em;}
+  .bt .l2{font-size:clamp(8px,1.6vw,11px); font-weight:600; opacity:.85; margin-top:4px;}
+  .banner-card .bc-foot{padding:9px 14px; font-size:11px; color:var(--muted); border-top:1px solid var(--line);}
+
+  /* ── Roadmap phases ── */
+  .phase{border-left:3px solid var(--line-strong); padding-left:20px; margin-bottom:26px; position:relative;}
+  .phase::before{content:''; position:absolute; left:-7px; top:2px; width:11px; height:11px; border-radius:50%; background:var(--surface); border:3px solid var(--accent);}
+  .phase.done::before{background:var(--accent); border-color:var(--accent);}
+  .phase-head{display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;}
+  .phase-head h3{font-size:15.5px; margin:0; color:var(--ink);}
+  .phase-badge{font-family:var(--mono); font-size:10.5px; padding:2px 8px; border-radius:999px; font-weight:700;}
+  .phase-badge.done{background:#e4f5ef; color:#0a7a53;}
+  .phase-badge.fe{background:#e6f2ff; color:#1d5fa8;}
+  .phase-badge.mid{background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line);}
+  .phase-badge.be{background:#fde8e8; color:#b3261e;}
+  .phase-desc{font-size:12.5px; color:var(--muted); margin-bottom:10px;}
+  .step-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .step-list li{display:flex; gap:10px; font-size:13.5px; align-items:flex-start;}
+  .step-list li .n{font-family:var(--mono); font-size:11px; color:var(--muted); min-width:16px; padding-top:2px;}
+
+  footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); font-family:var(--mono);}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow"><span class="dot"></span>제천 B2G 납품관리 · 내부 실행 보고서</div>
+    <h1 class="title">실제 기능 구현을 위한 필요 자료 &amp; 세부 실행 단계</h1>
+    <p class="lede">10개 직원카드의 "연출"을 "실제"로 바꾸는 데 필요한 자료를 목록화하고, 현재 시스템이 실제로 만들어내는 견적서·납품서 양식을 그대로 재현해 검토받고, 남은 작업을 실행 순서대로 정리했습니다.</p>
+    <div class="meta-row">
+      <span><b>대상 파일</b>&nbsp;공급자_납품사이트.html</span>
+      <span><b>기준일</b>&nbsp;2026-09-08</span>
+      <span><b>이전 산출물</b>&nbsp;output/직원카드_실기능구현_방안.md</span>
+    </div>
+  </div>
+
+  <nav class="secnav">
+    <a href="#materials">① 준비 자료</a>
+    <a href="#pricing">② 기본단가자료</a>
+    <a href="#quote">③ 견적서 샘플</a>
+    <a href="#delivery">④ 납품서 샘플</a>
+    <a href="#design">⑤ 디자인시안 샘플</a>
+    <a href="#steps">⑥ 실행 단계</a>
+    <a href="#actions">⑦ 다음 액션</a>
+  </nav>
+
+  <!-- ① 준비 자료 -->
+  <section id="materials">
+    <div class="sec-head"><span class="sec-num">01</span><h2>실제 구현에 필요한 준비 자료</h2></div>
+    <p class="sec-note">아래 5가지는 코드로 대신할 수 없는, 회사(제천종합공급유통)에서 직접 확정·전달해야 하는 자료입니다. 자료가 도착하는 순서대로 해당 기능을 실제 데이터로 교체합니다.</p>
+    <ul class="checklist">
+      <li>
+        <div class="box"></div>
+        <div>
+          <div class="lbl">품목별 실제 단가표 <span class="tag">필수</span></div>
+          <div class="desc">현재 조달몰 카탈로그 8개 품목은 데모 가격입니다. 원가 대리(정확이)의 자동 견적이 이 표를 그대로 읽어 견적서에 반영하므로, 실제 청구 가능한 단가가 아니면 견적 자체가 무효가 됩니다.</div>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <div class="lbl">회사 사업자 정보 확정 <span class="tag">필수</span></div>
+          <div class="desc">상호·사업자번호·대표자·주소·계좌가 견적서·납품서 상단에 그대로 인쇄됩니다. 현재 값(제천종합공급유통 / 307-81-12345)이 실제 정보인지 확인이 필요합니다.</div>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <div class="lbl">제천시 CI 로고 · 슬로건 파일 <span class="tag">시안 품질</span></div>
+          <div class="desc">디자인 선임(창의)의 시안이 지금은 텍스트뿐입니다. 로고 SVG/PNG와 색상 가이드가 있으면 ⑤ 섹션의 목업 수준을 훨씬 실제 시안에 가깝게 올릴 수 있습니다.</div>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <div class="lbl">관공서 지정 서식 여부 확인 <span class="tag">확인 필요</span></div>
+          <div class="desc">지금 견적서·납품서는 시스템이 자체 제작한 양식입니다. 제천시청 회계과가 별도 지정 양식을 요구하는지 확인이 필요합니다 — 요구한다면 ③④ 샘플의 레이아웃을 그 양식에 맞춰 다시 짜야 합니다.</div>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <div class="lbl">현장 시공 사진 1~2장 (참고용) <span class="tag">검증용</span></div>
+          <div class="desc">이번에 추가한 사진대지 업로드 기능이 실제 현장 사진 비율·용량에서도 잘 보이는지 확인하기 위한 샘플입니다. 시스템 반영용이 아니라 테스트용입니다.</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ② 기본단가자료 -->
+  <section id="pricing">
+    <div class="sec-head"><span class="sec-num">02</span><h2>기본단가자료 — 현재 값과 확정 필요 항목</h2></div>
+    <p class="sec-note">왼쪽은 지금 조달몰 카탈로그(Store.data.catalog)에 들어있는 데모 단가입니다. 오른쪽 "실제 단가" 칸을 채워서 돌려주시면 카탈로그 관리 화면에 그대로 반영하고, 다음 자동 견적부터 이 값을 사용합니다.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>분류</th><th>상품명</th><th>규격</th><th class="num">현재(데모) 단가</th><th>단위</th><th>실제 단가</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🪧 현수막</td><td>지정게시대 현수막</td><td>500×90cm 마감 및 시공 포함</td><td class="num">55,000</td><td>장</td><td class="fill">입력 필요</td></tr>
+          <tr><td>🪧 현수막</td><td>거리 가로등 배너</td><td>60×180cm 1조 2장</td><td class="num">65,000</td><td>조</td><td class="fill">입력 필요</td></tr>
+          <tr><td>📄 광고물</td><td>홍보물 리플렛·브로셔</td><td>A4 양면칼라 아트지</td><td class="num">850</td><td>부</td><td class="fill">입력 필요</td></tr>
+          <tr><td>📄 광고물</td><td>고급 명함·안내장</td><td>90×50mm 200매</td><td class="num">20,000</td><td>통</td><td class="fill">입력 필요</td></tr>
+          <tr><td>🔧 수선·공사</td><td>사무실 바닥 왁스코팅/보수</td><td>평당 1식 친환경</td><td class="num">25,000</td><td>평</td><td class="fill">입력 필요</td></tr>
+          <tr><td>🔧 수선·공사</td><td>창호 교체 및 썬팅</td><td>단열 필름 시공 1㎡</td><td class="num">45,000</td><td>㎡</td><td class="fill">입력 필요</td></tr>
+          <tr><td>🤝 용역</td><td>청사 정기 방제소독 용역</td><td>연면적 기준 1회</td><td class="num">300,000</td><td>회</td><td class="fill">입력 필요</td></tr>
+          <tr><td>🤝 용역</td><td>외벽 고압 세척 용역</td><td>청사 외벽 1회</td><td class="num">800,000</td><td>회</td><td class="fill">입력 필요</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-note" style="margin-top:14px;">⚠️ 알려진 한계: 자동 견적은 현재 "분류(cat)당 첫 번째 등록 상품"의 단가만 사용합니다. 예를 들어 현수막 주문이면 종류와 무관하게 항상 <em>지정게시대 현수막(55,000원)</em> 단가가 쓰입니다 — 아래 ③ 견적서 샘플이 바로 이 한계를 보여주는 실제 결과물입니다. 상품명까지 매칭하는 로직은 ⑥ 실행 단계의 Phase 1 항목입니다.</p>
+  </section>
+
+  <!-- ③ 견적서 샘플 -->
+  <section id="quote">
+    <div class="sec-head"><span class="sec-num">03</span><h2>견적서 샘플</h2></div>
+    <p class="sec-note">아래는 새 값을 지어낸 예시가 아니라, 현재 코드의 <code>autoGenerateQuote()</code> → <code>printQuote()</code>가 실제로 만들어내는 문서를 그대로 재현한 것입니다 (팝업 인쇄창과 동일한 레이아웃).</p>
+    <div class="doc-frame">
+      <div class="doc-label"><span>미리보기 — 실제 인쇄 시 이 모습 그대로 출력됨</span><span class="live">● printQuote() 실사용 레이아웃</span></div>
+      <div class="paper">
+        <h3 class="doc-title">견 적 서</h3>
+        <div class="r2">
+          <div class="bx"><strong>문서번호 / 작성일</strong>Q-2026-004 &nbsp;/&nbsp; 2026.09.05</div>
+          <div class="bx"><strong>수 신</strong>제천시청 관광과 최동훈 주무관님</div>
+        </div>
+        <div class="r2">
+          <div class="bx"><strong>공급자</strong>제천종합공급유통<br>사업자번호: 307-81-12345<br>대표자: 김제천<br>전화: 043-641-5000<br>주소: 충북 제천시 의림대로 126<br>계좌: 농협 301-0012-3456-71</div>
+          <div class="bx"><strong>주문 정보</strong>주문번호: ORD-2026-004<br>유형: 현수막<br>희망납품일: 2026.09.18<br>납품장소: 시청 정문 및 의림지 사거리 게시대</div>
+        </div>
+        <table>
+          <thead><tr><th>품목명</th><th>규격</th><th>수량</th><th>단위</th><th>단가</th><th style="text-align:right">금액</th></tr></thead>
+          <tbody><tr><td>지정게시대 현수막</td><td>500×90cm 마감 및 시공 포함</td><td>5</td><td>장</td><td>55,000</td><td style="text-align:right">275,000</td></tr></tbody>
+        </table>
+        <div class="tot">
+          <div class="tr"><span>공급가액</span><span>275,000원</span></div>
+          <div class="tr"><span>부가세 (10%)</span><span>27,500원</span></div>
+          <div class="tr grand"><span>합 계</span><span>302,500원</span></div>
+        </div>
+        <p class="note">※ 조달몰 카탈로그 단가(지정게시대 현수막) 기준 자동 산출 (VAT 포함)</p>
+        <div class="sig"><div class="sb"><span class="cap">공급자 (인)</span>제천종합공급유통</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 납품서 샘플 -->
+  <section id="delivery">
+    <div class="sec-head"><span class="sec-num">04</span><h2>납품서(거래명세서) 샘플</h2></div>
+    <p class="sec-note">위 견적이 승인·완료 처리된 이후 <code>printDelivery()</code>가 만드는 문서입니다. 견적서와 같은 품목·금액을 이어받고, 서명란만 "납품 확인자 / 납품자" 2인 구조로 바뀝니다.</p>
+    <div class="doc-frame">
+      <div class="doc-label"><span>미리보기 — 실제 인쇄 시 이 모습 그대로 출력됨</span><span class="live">● printDelivery() 실사용 레이아웃</span></div>
+      <div class="paper">
+        <h3 class="doc-title" style="letter-spacing:8px;">납 품 서</h3>
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:12px;">
+          <div><b>문서번호:</b> D-2026-004 &nbsp; <b>납품일:</b> 2026.09.18</div>
+          <div><b>수신:</b> 제천시청 관광과 최동훈 주무관님</div>
+        </div>
+        <table>
+          <thead><tr><th>품목명</th><th>규격</th><th>수량</th><th>단위</th><th style="text-align:right">단가</th><th style="text-align:right">금액</th></tr></thead>
+          <tbody><tr><td>지정게시대 현수막</td><td>500×90cm 마감 및 시공 포함</td><td>5</td><td>장</td><td style="text-align:right">55,000</td><td style="text-align:right">275,000</td></tr></tbody>
+        </table>
+        <div style="text-align:right;font-size:14px;font-weight:900;color:#07182f;border-top:2px solid #07182f;padding-top:7px;margin-top:7px;">합 계: 302,500원</div>
+        <div class="sig">
+          <div class="sb"><span class="cap">납품 확인자 (인)</span>관광과<br>최동훈</div>
+          <div class="sb"><span class="cap">납품자 (인)</span>제천종합공급유통<br>김제천</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 디자인시안 샘플 -->
+  <section id="design">
+    <div class="sec-head"><span class="sec-num">05</span><h2>디자인시안 샘플</h2></div>
+    <p class="sec-note">디자인 선임(창의)의 "시안 2종"은 현재 이모지·텍스트뿐입니다. 아래는 <strong>프론트엔드만으로 지금 바로 만들 수 있는 수준</strong>의 목업입니다 — 주문의 실제 문구를 실제 규격 비율(500×90cm)에 넣어 자동 생성했습니다. 실제 그래픽 디자인(로고 배치, 사진 배경)은 아니지만, "무엇이 인쇄되는지"는 정확히 확인할 수 있습니다.</p>
+    <div class="banner-grid">
+      <div class="banner-card">
+        <div class="bc-head">1안 · 자연힐링<span style="color:var(--muted);font-weight:400;">herb tone</span></div>
+        <div class="banner-mock herb">
+          <div class="bt">
+            <div class="l1">2026 제천 한방천연물 힐링 페스타</div>
+            <div class="l2">의림지 사거리 · 시청 정문 게시</div>
+          </div>
+        </div>
+        <div class="bc-foot">규격 500×90cm · 주문 실제 문구 반영</div>
+      </div>
+      <div class="banner-card">
+        <div class="bc-head">2안 · 신뢰행정<span style="color:var(--muted);font-weight:400;">formal tone</span></div>
+        <div class="banner-mock formal">
+          <div class="bt">
+            <div class="l1">2026 제천 한방천연물 힐링 페스타</div>
+            <div class="l2">의림지 사거리 · 시청 정문 게시</div>
+          </div>
+        </div>
+        <div class="bc-foot">규격 500×90cm · 주문 실제 문구 반영</div>
+      </div>
+    </div>
+    <p class="sec-note" style="margin-top:14px;">이 이상(실제 사진 배경, 제천시 CI 로고, 폰트 브랜딩)은 ①의 로고 파일 없이는 불가능하고, 완전한 자동 이미지 생성은 별도 이미지 생성 API 연동이 필요합니다 (⑥ Phase 3).</p>
+  </section>
+
+  <!-- ⑥ 실행 단계 -->
+  <section id="steps">
+    <div class="sec-head"><span class="sec-num">06</span><h2>실제 구현 세부 단계</h2></div>
+    <p class="sec-note">자료 의존도와 작업량 기준으로 4단계로 나눴습니다. 위로 갈수록 이미 끝났거나 바로 시작할 수 있는 일입니다.</p>
+
+    <div class="phase done">
+      <div class="phase-head"><h3>Phase 0 — 완료</h3><span class="phase-badge done">DONE</span></div>
+      <p class="phase-desc">지난 세션에 이미 반영됨.</p>
+      <ol class="step-list">
+        <li><span class="n">01</span>사람 승인 게이트 시각 언어(잠금/체크, 배경 깜빡임) 전 화면 통일</li>
+        <li><span class="n">02</span>직원카드 프리셋 버튼 → 실제 처리 대상 주문 실행으로 연결</li>
+        <li><span class="n">03</span>원가대리 견적 → 조달몰 카탈로그 실단가 연동</li>
+        <li><span class="n">04</span>물류주임 사진대지 → 실제 파일 업로드</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 1 — 자료만 오면 바로 반영 (코드량 적음)</h3><span class="phase-badge fe">프론트엔드만</span></div>
+      <p class="phase-desc">외부 API 없이, ①의 자료가 도착하는 대로 즉시 적용 가능.</p>
+      <ol class="step-list">
+        <li><span class="n">05</span>실제 단가표 반영 → <code>Store.data.catalog</code> 8개 항목 업데이트 (약 30분)</li>
+        <li><span class="n">06</span>회사 실제 정보 반영 → <code>Store.data.settings</code> 업데이트</li>
+        <li><span class="n">07</span><code>b2gDocsPage(orderId)</code> 파라미터화 — 특정 주문의 서류가 항상 정확히 뜨도록</li>
+        <li><span class="n">08</span>CEO 결재: 견적 합계가 수의계약 한도(2,000만원) 초과 시 결재 버튼 차단</li>
+        <li><span class="n">09</span>비서실 일일 브리핑 — 오늘 완료/접수 건수 자동 집계로 초안 채우기</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 2 — 코드 + 소규모 리소스 필요</h3><span class="phase-badge mid">중간</span></div>
+      <p class="phase-desc">API 키 발급 정도의 준비만 있으면 서버 없이도 가능.</p>
+      <ol class="step-list">
+        <li><span class="n">10</span>전화접수 원문에서 유형·부서·날짜 키워드 자동 추출 (규칙 기반)</li>
+        <li><span class="n">11</span>기상청 공공API로 시공일 강풍특보 자동 조회 (무료 API 키)</li>
+        <li><span class="n">12</span>⑤ 시안 목업에 제천시 CI 로고 실제 배치 (로고 파일 도착 시)</li>
+      </ol>
+    </div>
+
+    <div class="phase">
+      <div class="phase-head"><h3>Phase 3 — 백엔드 필요 (별도 프로젝트 단위)</h3><span class="phase-badge be">서버 필요</span></div>
+      <p class="phase-desc">정적 HTML 한 장으로는 원천적으로 불가능한 항목. CLAUDE.md Phase 2 로드맵과 동일.</p>
+      <ol class="step-list">
+        <li><span class="n">13</span>홈택스 전자세금계산서 실발행 연동</li>
+        <li><span class="n">14</span>카카오 알림톡 실발송 연동</li>
+        <li><span class="n">15</span>AI 시안 이미지 실생성 (이미지 생성 API)</li>
+        <li><span class="n">16</span>사진 base64 → 실제 파일 스토리지 전환 (5MB 한계 해소)</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ⑦ 다음 액션 -->
+  <section id="actions">
+    <div class="sec-head"><span class="sec-num">07</span><h2>다음 액션</h2></div>
+    <div class="card">
+      <ul class="checklist" style="margin:0;">
+        <li><div class="box"></div><div><div class="lbl">② 단가표 채워서 전달</div><div class="desc">채워지는 즉시 Phase 1의 05번부터 반영합니다.</div></div></li>
+        <li><div class="box"></div><div><div class="lbl">회사 실제 정보 컨펌 (또는 수정사항 전달)</div><div class="desc">지금 값이 맞다면 "그대로 확정"이라고만 알려주셔도 됩니다.</div></div></li>
+        <li><div class="box"></div><div><div class="lbl">Phase 1 전체를 지금 바로 진행할지 결정</div><div class="desc">자료 없이도 가능한 07~09번은 말씀 주시면 바로 코드에 반영합니다.</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>output/직원카드_실기능구현_방안.md · output/CHANGELOG.md 와 함께 보는 문서입니다.</footer>
+</div>

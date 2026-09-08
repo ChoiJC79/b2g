@@ -1,0 +1,956 @@
+<!-- 운영본: 공급자(납품업체) 화면. 수요자_주문사이트.html 과 localStorage 키 b2g_v3 를 공유합니다. -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제천시청 납품관리 — 공급자 사이트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--navy:#0c3461;--blue:#0a7065;--blue2:#0d9488;--sky:#e6f7f5;--line:#b2dcd8;--herb:#3d7a3a;--gold:#b87333}
+*{font-family:'Pretendard',sans-serif;box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#f0faf8 0%,#eaf4f0 100%);min-height:100vh}
+.login-bg{min-height:100vh;background:radial-gradient(circle at 15% 20%,rgba(13,148,136,.32),transparent 35%),radial-gradient(circle at 85% 80%,rgba(10,112,101,.28),transparent 32%),linear-gradient(160deg,#0a1f1a 0%,#0c3d36 40%,#0c3461 100%)}
+.card-base{border:1px solid rgba(178,220,216,.8);background:rgba(255,255,255,.98);box-shadow:0 12px 28px rgba(10,112,101,.08);border-radius:20px}
+.sidebar{width:220px;min-height:100vh;background:linear-gradient(180deg,#0c3461 0%,#0a4a3d 100%);flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-link{display:flex;align-items:center;gap:10px;padding:11px 16px;color:rgba(255,255,255,.65);cursor:pointer;border-radius:10px;margin:2px 10px;transition:all .2s;font-size:14px;font-weight:500}
+.sb-link:hover{background:rgba(255,255,255,.1);color:#fff}
+.sb-link.active{background:var(--blue2);color:#fff}
+.btn-primary{background:linear-gradient(135deg,var(--blue2) 0%,#0a5e56 100%);color:#fff;border:none;cursor:pointer;transition:all .2s;border-radius:12px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(13,148,136,.4)}
+.btn-danger{background:linear-gradient(135deg,#c0392b,#96281b);color:#fff;border:none;cursor:pointer;border-radius:10px;transition:all .2s}
+.btn-danger:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(192,57,43,.3)}
+.btn-green{background:linear-gradient(135deg,#1a9e52,#0d7a3e);color:#fff;border:none;cursor:pointer;border-radius:10px;transition:all .2s}
+.btn-green:hover{transform:translateY(-2px)}
+.btn-outline{background:transparent;border:1.5px solid var(--blue2);color:var(--blue2);cursor:pointer;transition:all .2s;border-radius:10px}
+.btn-outline:hover{background:var(--sky)}
+.btn-ghost{background:transparent;border:none;cursor:pointer;color:#8ca0bc;padding:4px 8px;transition:color .2s}
+.btn-ghost:hover{color:var(--blue2)}
+.input-base{border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;width:100%;outline:none;transition:border-color .2s;background:#fff}
+.input-base:focus{border-color:var(--blue2)}
+.status-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.status-submitted{background:#e6f7f5;color:#0a7065;border:1px solid #b2dcd8}
+.status-quoted{background:#fff7df;color:#9b6d00;border:1px solid #f7e2a3}
+.status-quote_approved{background:#effaf4;color:#19714a;border:1px solid #ccefdc}
+.status-in_progress{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.status-proof_review{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.status-proof_approved{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.status-delivering{background:#e6f7f5;color:#0a7065;border:1px solid #99dbd5}
+.status-completed{background:#f0fdf4;color:#166534;border:1px solid #86efac}
+.status-cancelled{background:#fff0f0;color:#a82323;border:1px solid #ffc9c9}
+.order-row{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 18px;transition:all .2s;cursor:pointer;margin-bottom:8px}
+.order-row:hover{box-shadow:0 4px 14px rgba(13,148,136,.12);border-color:#88c9c3}
+.cat-tab{padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);transition:all .2s;background:#fff}
+.cat-tab.active{background:var(--blue2);color:#fff;border-color:var(--blue2)}
+.stat-card{border-radius:18px;padding:20px 24px;color:#fff}
+.bar-bg{background:#e8eef8;border-radius:4px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--blue2),#38c8ff);transition:width 1s ease}
+.msg-me{background:var(--blue2);color:#fff;border-radius:18px 18px 4px 18px;padding:10px 14px;max-width:72%;display:inline-block}
+.msg-other{background:#f0f4fa;color:#07182f;border-radius:18px 18px 18px 4px;padding:10px 14px;max-width:72%;display:inline-block}
+.qt-row input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;width:100%;outline:none}
+.qt-row input:focus{border-color:var(--blue2)}
+.toast{position:fixed;top:24px;right:24px;background:#07182f;color:#fff;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:600;z-index:99999;animation:toastIn .3s ease;pointer-events:none}
+@keyframes toastIn{from{transform:translateX(120px);opacity:0}to{transform:translateX(0);opacity:1}}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#fff;border-radius:24px;padding:32px;max-width:540px;width:92%;max-height:88vh;overflow-y:auto}
+.toggle{position:relative;width:44px;height:24px;background:#ccc;border-radius:999px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--blue2)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on::after{left:23px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const STORAGE_KEY='b2g_v3';
+const STATUS_LABELS={draft:'임시저장',submitted:'접수대기',quoted:'견적발송',quote_approved:'견적승인',in_progress:'작업중',proof_review:'시안확인',proof_approved:'시안승인',delivering:'납품중',completed:'완료',cancelled:'취소'};
+const ORDER_TYPES={supplies:'사무용품',toner:'토너·소모품',banner:'현수막',advertising:'광고물',construction:'수선·공사',service:'용역'};
+const ORDER_ICONS={supplies:'🖊️',toner:'🖨️',banner:'🪧',advertising:'📄',construction:'🔧',service:'🤝'};
+const uid=()=>Math.random().toString(36).substr(2,9);
+const today=()=>new Date().toISOString().split('T')[0];
+const fmt=d=>d?d.replace(/-/g,'.'):'—';
+const comma=n=>Number(n||0).toLocaleString();
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function quoteTotal(q){return Number(q?.total??q?.totalAmt??0)}
+function quoteSub(q){return Number(q?.subtotal??q?.supplyAmt??0)}
+function quoteVat(q){return Number(q?.vat??q?.vatAmt??0)}
+function msgText(m){return m.text??m.body??''}
+function needsProof(type){return type==='banner'||type==='advertising'}
+function nextStatusFor(o){
+  if(!o)return null;
+  if(o.status==='submitted'||o.status==='quoted')return null;
+  if(o.status==='quote_approved')return 'in_progress';
+  if(o.status==='in_progress')return needsProof(o.type)?'proof_review':'delivering';
+  if(o.status==='proof_review')return 'proof_approved';
+  if(o.status==='proof_approved')return 'delivering';
+  if(o.status==='delivering')return 'completed';
+  return null;
+}
+function orderDetailRows(o){
+  const d=o.detail||{}, rows=[];
+  const add=(k,v)=>{if(v===undefined||v===null||v===''||(Array.isArray(v)&&!v.length))return;rows.push(`<div><span class="text-gray-400 block">${esc(k)}</span><span class="font-semibold whitespace-pre-wrap">${esc(Array.isArray(v)?v.join(', '):String(v))}</span></div>`)};
+  if(o.type==='supplies'&&Array.isArray(d.items)&&d.items.length){
+    return `<div class="col-span-2 mt-2">${d.items.map(it=>`<div class="text-sm py-1 border-b border-gray-50">${esc(it.name)} <span class="text-gray-400">${esc(it.spec||'')} · ${comma(it.qty)} ${esc(it.unit||'')}</span></div>`).join('')}</div>`;
+  }
+  if(o.type==='toner'){add('제조사',d.maker);add('기종',d.model);add('토너번호',d.no);add('색상',d.color);add('수량',d.qty);}
+  if(o.type==='banner'){add('종류',d.bannerKind);add('가로(cm)',d.width);add('세로(cm)',d.height);add('설치위치',d.location);add('수량',d.qty);add('홍보문구',d.text);add('시안회신',d.contact||d.replyPhone||d.replyEmail);}
+  if(o.type==='advertising'){add('종류',d.kind||d.etcDesc);add('규격',d.spec);add('수량',d.qty);add('도수',d.dpi||d.color);add('시안회신',d.contact||d.replyPhone||d.replyEmail);}
+  if(o.type==='construction'){add('금액구간',d.budget||d.conRange);add('분야',d.fields||d.conField);add('작업위치',d.location);add('작업내용',d.work||d.desc);}
+  if(o.type==='service'){add('용역종류',d.svcType);add('범위',d.scope);add('기간',(d.startDate||d.endDate)?`${d.startDate||''} ~ ${d.endDate||''}`:'');add('내용',d.content||d.desc);}
+  return rows.join('');
+}
+
+// ── Store ──────────────────────────────────────────────────
+const Store={
+  data:{users:[],orders:[],quotes:[],messages:[],docs:[],catalog:[],cart:{},mallOrders:[],mileage:{},favorites:[],ratings:[],settings:{bizName:'제천 납품업체',bizNo:'123-45-67890',ceo:'홍길동',phone:'043-123-4567',addr:'충북 제천시 의림대로 126',bank:'농협 301-0012-3456-71'}},
+  save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(this.data))},
+  load(){
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw)try{this.data=JSON.parse(raw)}catch(e){}
+    if(!this.data.users||!this.data.users.length)this.seed();
+    if(!this.data.catalog||!this.data.catalog.length||!this.data.catalog.some(p=>p.cat==='furniture'))this.seedCatalog();
+    ['cart','mallOrders','mileage','docs','messages','quotes','orders','users','favorites','ratings'].forEach(k=>{if(!this.data[k])this.data[k]=k==='cart'||k==='mileage'?{}:[]});
+    if(!this.data.settings)this.data.settings={bizName:'제천 납품업체',bizNo:'123-45-67890',ceo:'홍길동',phone:'043-123-4567',addr:'충북 제천시 의림대로 126',bank:'농협 301-0012-3456-71'};
+    this.normalize();
+  },
+  normalize(){
+    (this.data.quotes||[]).forEach(q=>{
+      const total=Number(q.total??q.totalAmt??0), sub=Number(q.subtotal??q.supplyAmt??0), vat=Number(q.vat??q.vatAmt??0);
+      q.total=q.totalAmt=total; q.subtotal=q.supplyAmt=sub; q.vat=q.vatAmt=vat;
+    });
+    (this.data.messages||[]).forEach(m=>{const t=m.text??m.body??''; m.text=m.body=t;});
+  },
+  seed(){
+    this.data.users=[
+      {id:'u1',role:'admin',email:'admin@test.com',pw:'1234',name:'관리자',dept:''},
+      {id:'u2',role:'staff',email:'staff@test.com',pw:'1234',name:'김담당',dept:''},
+      {id:'u3',role:'client',name:'이민준',dept:'기획예산과'},
+      {id:'u4',role:'client',name:'박서연',dept:'세무과'}
+    ];
+    this.data.orders=[
+      {id:'o1',orderNo:'ORD-2026-001',clientId:'u3',staffId:'u2',type:'supplies',status:'quoted',title:'A4용지 외 3종',detail:{items:[{name:'A4용지',spec:'80g 500매',qty:10,unit:'박스'}]},desiredDate:'2026-07-10',deliveryAddr:'기획예산과 사무실',note:'',taxInvoice:'delivery',taxEmail:'',createdAt:'2026-06-28'},
+      {id:'o2',orderNo:'ORD-2026-002',clientId:'u3',staffId:'u2',type:'banner',status:'submitted',title:'시정홍보 현수막',detail:{},desiredDate:'2026-07-15',deliveryAddr:'시청 정문',note:'',taxInvoice:'request',taxEmail:'',createdAt:'2026-06-29'},
+      {id:'o3',orderNo:'ORD-2026-003',clientId:'u4',staffId:'u2',type:'service',status:'completed',title:'청소 용역 (6월)',detail:{},desiredDate:'2026-06-30',deliveryAddr:'시청 전관',note:'',taxInvoice:'delivery',taxEmail:'',createdAt:'2026-06-01'}
+    ];
+    this.data.quotes=[
+      {id:'q1',orderId:'o1',items:[{name:'A4용지 80g 500매',spec:'더블에이',qty:10,unit:'박스',unitPrice:28000,amount:280000},{name:'볼펜(흑)',spec:'모나미153',qty:5,unit:'박스',unitPrice:12000,amount:60000}],subtotal:340000,vat:34000,total:374000,note:'부가세 포함',createdAt:'2026-06-29'}
+    ];
+    this.data.messages=[
+      {id:'m1',orderId:'o1',senderId:'u2',text:'견적서 발송드립니다. 확인 후 승인 부탁드립니다.',createdAt:'2026-06-29T10:30:00'},
+      {id:'m2',orderId:'o1',senderId:'u3',text:'확인했습니다. 검토 후 연락드리겠습니다.',createdAt:'2026-06-29T11:00:00'}
+    ];
+    this.data.mileage={u3:{balance:3740,history:[{type:'earn',amount:3740,desc:'ORD-2026-001 견적승인',date:'2026-06-25'}]}};
+    this.seedCatalog();
+  },
+  seedCatalog(){
+    const cats=[
+      {cat:'furniture',items:[
+        {id:'pf1',name:'사무용 의자',spec:'메쉬, 등받이·높이 조절',price:180000,unit:'개',icon:'🪑'},
+        {id:'pf2',name:'사무용 책상',spec:'1400×700mm',price:220000,unit:'개',icon:'🖥️'},
+        {id:'pf3',name:'이동식 파티션',spec:'H1800×W900mm',price:150000,unit:'개',icon:'🚧'},
+        {id:'pf4',name:'4단 스틸 캐비닛',spec:'A4 서류함, 잠금장치',price:280000,unit:'개',icon:'🗄️'},
+        {id:'pf5',name:'회의용 테이블',spec:'2400×900mm, 접이식',price:450000,unit:'개',icon:'🪵'},
+        {id:'pf6',name:'책장·선반',spec:'3단, 900×300×1200mm',price:120000,unit:'개',icon:'📚'},
+        {id:'pf8',name:'서랍장',spec:'이동식 3단, A4대응',price:85000,unit:'개',icon:'🗂️'},
+        {id:'pf9',name:'회의용 의자',spec:'패브릭, 등받이 고정형',price:120000,unit:'개',icon:'💺'},
+        {id:'pf7',name:'기타 사무용가구',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]},
+      {cat:'toner',items:[
+        {id:'p7',name:'HP 흑백 토너',spec:'CF217A',price:28000,unit:'개',icon:'🖨️'},
+        {id:'p8',name:'삼성 흑백 토너',spec:'MLT-D101S',price:25000,unit:'개',icon:'🖨️'},
+        {id:'p9',name:'HP 컬러 토너(흑)',spec:'CE410A',price:35000,unit:'개',icon:'🖨️'},
+        {id:'p10',name:'HP 컬러 토너 세트',spec:'CE411A/12A/13A',price:98000,unit:'세트',icon:'🖨️'},
+        {id:'p11',name:'드럼 유닛',spec:'HP CF219A',price:45000,unit:'개',icon:'⚙️'},
+        {id:'pt_etc',name:'기타(문의)',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]},
+      {cat:'cleaning',items:[
+        {id:'p12',name:'KF94 마스크',spec:'대형 50매',price:22000,unit:'박스',icon:'😷'},
+        {id:'p13',name:'손소독제',spec:'500mL',price:5500,unit:'개',icon:'🧴'},
+        {id:'p14',name:'다목적 세제',spec:'1L',price:4000,unit:'개',icon:'🧹'},
+        {id:'p15',name:'위생장갑',spec:'L 100매',price:8000,unit:'박스',icon:'🧤'},
+        {id:'p16',name:'물티슈',spec:'70매',price:2500,unit:'팩',icon:'🧻'},
+        {id:'pc_etc',name:'기타(문의)',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]},
+      {cat:'banner',items:[
+        {id:'p17',name:'지정게시대 현수막',spec:'규격통일',price:55000,unit:'개',icon:'🪧'},
+        {id:'p18',name:'거리용 현수막',spec:'사이즈협의',price:65000,unit:'개',icon:'🪧'},
+        {id:'p19',name:'홍보물 리플렛',spec:'A4 양면',price:850,unit:'장',icon:'📄'},
+        {id:'p20',name:'명함',spec:'90×50mm',price:20000,unit:'100장',icon:'💳'},
+        {id:'p21',name:'스티커 라벨',spec:'A4 100매',price:12000,unit:'묶음',icon:'🏷️'},
+        {id:'pb_etc',name:'기타(문의)',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]},
+      {cat:'construction',items:[
+        {id:'p22',name:'도배(평당)',spec:'합지',price:15000,unit:'평',icon:'🏠'},
+        {id:'p23',name:'도장(평당)',spec:'친환경페인트',price:8000,unit:'평',icon:'🎨'},
+        {id:'p24',name:'바닥재(평당)',spec:'강화마루',price:35000,unit:'평',icon:'🪵'},
+        {id:'p25',name:'타일(평당)',spec:'300×300',price:0,unit:'평',icon:'🔲'},
+        {id:'p26',name:'창호교체',spec:'PVC 1200×1500',price:350000,unit:'짝',icon:'🪟'},
+        {id:'p27',name:'방수(평당)',spec:'우레탄',price:25000,unit:'평',icon:'💧'},
+        {id:'p28',name:'전기콘센트',spec:'매립2구',price:50000,unit:'개소',icon:'🔌'},
+        {id:'p29',name:'배관(m당)',spec:'PVC',price:30000,unit:'m',icon:'🔧'},
+        {id:'p30',name:'간판(소형)',spec:'600×400mm',price:120000,unit:'개',icon:'📋'},
+        {id:'p31',name:'조경식재(평당)',spec:'잔디+관목',price:50000,unit:'평',icon:'🌿'},
+        {id:'pco_etc',name:'기타(문의)',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]},
+      {cat:'service',items:[
+        {id:'p32',name:'청소용역(일)',spec:'건물내',price:150000,unit:'일',icon:'🧹'},
+        {id:'p33',name:'경비용역(일)',spec:'24시간',price:200000,unit:'일',icon:'🛡️'},
+        {id:'p34',name:'시설관리(월)',spec:'기계·전기',price:2500000,unit:'월',icon:'🔧'},
+        {id:'p35',name:'육안검사(회)',spec:'소방·전기',price:300000,unit:'회',icon:'👁️'},
+        {id:'p36',name:'정기점검(분기)',spec:'소방시설',price:500000,unit:'분기',icon:'📊'},
+        {id:'p37',name:'관리용역(월)',spec:'주차장·공용',price:1800000,unit:'월',icon:'🏢'},
+        {id:'p38',name:'방제서비스(회)',spec:'병해충',price:250000,unit:'회',icon:'🪲'},
+        {id:'p39',name:'제설용역(회)',spec:'살포+청소',price:180000,unit:'회',icon:'❄️'},
+        {id:'p40',name:'운반용역(회)',spec:'2인기준',price:200000,unit:'회',icon:'🚚'},
+        {id:'p41',name:'홍보물배포(회)',spec:'관내',price:150000,unit:'회',icon:'📬'},
+        {id:'ps_etc',name:'기타(문의)',spec:'직접 문의',price:0,unit:'건',icon:'💬'}
+      ]}
+    ];
+    this.data.catalog=[];
+    cats.forEach(c=>c.items.forEach(p=>this.data.catalog.push({...p,cat:c.cat,visible:true,desc:''})));
+    this.save();
+  }
+};
+
+// ── State ──────────────────────────────────────────────────
+let CU=null,route='login',rParam=null,orderTab='all',catFilter='all';
+
+function go(r,p=null){route=r;rParam=p;window.scrollTo(0,0);render()}
+function render(){document.getElementById('app').innerHTML=buildHTML();bind()}
+
+function buildHTML(){
+  if(route==='login')return loginPage();
+  return `<div style="display:flex;min-height:100vh">
+    ${sidebar()}
+    <div style="flex:1;min-width:0;background:#f0f4fa">
+      <div class="max-w-5xl mx-auto px-6 py-6">${pageHTML()}</div>
+    </div>
+  </div>`;
+}
+
+function pageHTML(){
+  if(route==='dashboard')return dashPage();
+  if(route==='orders')return ordersPage();
+  if(route==='order-detail')return detailPage(rParam);
+  if(route==='quote-builder')return quotePage(rParam);
+  if(route==='catalog')return catalogPage();
+  if(route==='docs')return docsPage();
+  if(route==='settings')return settingsPage();
+  return '<p class="text-center py-20 text-gray-400">페이지를 찾을 수 없습니다.</p>';
+}
+
+// ── Sidebar ────────────────────────────────────────────────
+function sidebar(){
+  const links=[
+    {r:'dashboard',icon:'📊',label:'대시보드'},
+    {r:'orders',icon:'📋',label:'주문관리'},
+    {r:'catalog',icon:'🛒',label:'카탈로그 관리'},
+    {r:'docs',icon:'📂',label:'제출서류'},
+    {r:'settings',icon:'⚙️',label:'설정'}
+  ];
+  const waiting=Store.data.orders.filter(o=>o.status==='submitted').length;
+  return `<div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="text-white font-extrabold text-lg">🌿 제천시 납품관리</div>
+      <div class="text-xs mt-1" style="color:rgba(153,219,213,.85)">공급자 관리 시스템</div>
+    </div>
+    <div class="px-3 py-4 border-b border-white/10">
+      <div class="bg-blue-900/40 rounded-xl px-3 py-2">
+        <div class="text-white/50 text-xs mb-0.5">로그인</div>
+        <div class="text-white font-semibold text-sm">${esc(CU?.name||'')}</div>
+        <div class="text-blue-300 text-xs">${CU?.role==='admin'?'관리자':'담당자'} · ${CU?.email||''}</div>
+      </div>
+    </div>
+    <nav class="flex-1 py-3">
+      ${links.map(l=>`<div class="sb-link${route===l.r?' active':''}" onclick="go('${l.r}')">
+        <span class="text-lg">${l.icon}</span>
+        <span>${l.label}</span>
+        ${l.r==='orders'&&waiting?`<span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">${waiting}</span>`:''}
+      </div>`).join('')}
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <a href="수요자_주문사이트.html" class="text-blue-300 hover:text-white text-xs block mb-3">← 수요자 사이트</a>
+      <button class="text-white/40 hover:text-white text-xs" onclick="logout()">로그아웃</button>
+    </div>
+  </div>`;
+}
+
+// ── Login ──────────────────────────────────────────────────
+function loginPage(){
+  return `<div class="login-bg flex flex-col min-h-screen">
+    <div class="flex-1 flex items-center justify-center px-4 py-10">
+      <div style="width:100%;max-width:420px">
+        <div class="text-center mb-8">
+          <div class="mb-3" style="font-size:3rem;filter:drop-shadow(0 4px 10px rgba(13,148,136,.5))">🌿</div>
+          <h1 class="text-white text-3xl font-extrabold mb-1">납품업체 관리자</h1>
+          <p class="text-sm mb-3" style="color:rgba(180,230,225,.85)">제천시청 B2G 납품관리 시스템</p>
+          <div class="flex justify-center gap-2">
+            <span style="font-size:11px;background:rgba(13,148,136,.25);color:rgba(200,240,235,.9);border:1px solid rgba(13,148,136,.4);padding:3px 10px;border-radius:999px">공급자 전용</span>
+            <span style="font-size:11px;background:rgba(61,122,58,.3);color:rgba(190,240,185,.9);border:1px solid rgba(61,122,58,.4);padding:3px 10px;border-radius:999px">🌱 제천시</span>
+          </div>
+        </div>
+        <div class="card-base p-7">
+          <h2 class="font-bold text-gray-800 text-base mb-5">담당자·관리자 로그인</h2>
+          <div class="mb-3">
+            <label class="text-xs font-semibold text-gray-500 block mb-1">이메일</label>
+            <input class="input-base" id="loginEmail" type="email" placeholder="예: admin@test.com" onkeydown="if(event.key==='Enter')doLogin()">
+          </div>
+          <div class="mb-4">
+            <label class="text-xs font-semibold text-gray-500 block mb-1">비밀번호</label>
+            <input class="input-base" id="loginPw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+          </div>
+          <button class="btn-primary w-full py-3 font-bold text-base" onclick="doLogin()">로그인</button>
+          <p id="loginErr" class="text-red-500 text-sm text-center mt-3" style="display:none"></p>
+          <div class="mt-5 p-3 bg-gray-50 rounded-xl text-xs text-gray-400">
+            <div class="font-semibold text-gray-500 mb-1">데모 계정</div>
+            <div>관리자: admin@test.com / 1234</div>
+            <div>담당자: staff@test.com / 1234</div>
+          </div>
+        </div>
+        <div class="text-center mt-5 text-white/50 text-sm">
+          주문 신청은 <a href="수요자_주문사이트.html" class="text-blue-300 hover:text-white underline">수요자 사이트 →</a>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function doLogin(){
+  const email=(document.getElementById('loginEmail')?.value||'').trim();
+  const pw=(document.getElementById('loginPw')?.value||'').trim();
+  const u=Store.data.users.find(x=>x.email===email&&x.pw===pw&&(x.role==='admin'||x.role==='staff'));
+  if(!u){const e=document.getElementById('loginErr');if(e){e.textContent='이메일 또는 비밀번호가 올바르지 않습니다.';e.style.display='block'}return}
+  CU=u;go('dashboard');
+}
+function logout(){CU=null;go('login')}
+
+// ── Dashboard ──────────────────────────────────────────────
+function dashPage(){
+  const orders=Store.data.orders;
+  const waiting=orders.filter(o=>o.status==='submitted');
+  const inProg=orders.filter(o=>['quoted','quote_approved','in_progress','proof_review','proof_approved','delivering'].includes(o.status));
+  const done=orders.filter(o=>o.status==='completed');
+  const typeCount={};
+  orders.forEach(o=>{typeCount[o.type]=(typeCount[o.type]||0)+1});
+  const maxTC=Math.max(1,...Object.values(typeCount));
+  const recent=[...orders].filter(o=>['completed','cancelled'].includes(o.status)).reverse().slice(0,5);
+  return `
+  <div class="mb-6">
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-1">대시보드</h2>
+    <p class="text-gray-500 text-sm">${today()} · ${CU?.name}님, 오늘도 수고 많으십니다.</p>
+  </div>
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="stat-card" style="background:linear-gradient(135deg,#0c3461,#0d9488)">
+      <div class="text-white/60 text-sm mb-1">전체 주문</div>
+      <div class="text-white text-3xl font-extrabold">${orders.length}</div>
+      <div class="text-white/40 text-xs mt-1">건</div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">
+      <div class="text-white/70 text-sm mb-1">처리 필요</div>
+      <div class="text-white text-3xl font-extrabold">${waiting.length}</div>
+      <div class="text-white/50 text-xs mt-1">접수대기</div>
+    </div>
+    <div class="stat-card" style="background:linear-gradient(135deg,#d97706,#f59e0b)">
+      <div class="text-white/70 text-sm mb-1">진행중</div>
+      <div class="text-white text-3xl font-extrabold">${inProg.length}</div>
+      <div class="text-white/50 text-xs mt-1">건</div>
+    </div>
+    ${(()=>{const ratings=Store.data.ratings||[];const avg=ratings.length?Math.round(ratings.reduce((s,r)=>s+r.stars,0)/ratings.length*10)/10:0;const avgStr=ratings.length?avg.toFixed(1)+'점':'—';return`<div class="stat-card" style="background:linear-gradient(135deg,#b87333,#8b5a24)">
+      <div class="text-white/70 text-sm mb-1">⭐ 평균 만족도</div>
+      <div class="text-white text-3xl font-extrabold">${avgStr}</div>
+      <div class="text-white/50 text-xs mt-1">평가 ${ratings.length}건</div>
+    </div>`;})()}
+  </div>
+  <div class="grid gap-5 mb-5" style="grid-template-columns:1.4fr 1fr">
+    <div class="card-base p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-gray-800">🔴 처리 필요 주문</h3>
+        <span class="text-sm text-blue-600 font-semibold cursor-pointer" onclick="orderTab='submitted';go('orders')">전체 보기 →</span>
+      </div>
+      ${waiting.length===0?'<div class="text-center py-8 text-gray-400 text-sm">처리 대기 주문이 없습니다. ✅</div>':
+      waiting.slice(0,5).map(o=>{
+        const cl=Store.data.users.find(u=>u.id===o.clientId);
+        return `<div class="order-row" onclick="go('order-detail','${o.id}')">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">${ORDER_ICONS[o.type]||'📦'}</span>
+              <div>
+                <div class="font-semibold text-sm text-gray-800">${esc(o.title)}</div>
+                <div class="text-xs text-gray-400">${esc(cl?.dept||'')} ${esc(cl?.name||'')} · ${fmt(o.createdAt)}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="status-badge status-${o.status}">${STATUS_LABELS[o.status]}</span>
+              <button class="btn-primary text-xs px-3 py-1.5 font-semibold" onclick="event.stopPropagation();go('quote-builder','${o.id}')">견적 작성</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card-base p-5">
+      <h3 class="font-bold text-gray-800 mb-4">📊 유형별 현황</h3>
+      ${Object.entries(ORDER_TYPES).map(([k,v])=>`
+      <div class="mb-3">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-gray-600">${ORDER_ICONS[k]} ${v}</span>
+          <span class="font-bold text-gray-800">${typeCount[k]||0}건</span>
+        </div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(((typeCount[k]||0)/maxTC)*100)}%"></div></div>
+      </div>`).join('')}
+    </div>
+  </div>
+  ${recent.length?`<div class="card-base p-5">
+    <h3 class="font-bold text-gray-800 mb-4">최근 완료·취소 내역</h3>
+    ${recent.map(o=>{const cl=Store.data.users.find(u=>u.id===o.clientId);return`
+    <div class="order-row" onclick="go('order-detail','${o.id}')">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">${ORDER_ICONS[o.type]||'📦'}</span>
+          <div><div class="font-semibold text-sm">${esc(o.title)}</div><div class="text-xs text-gray-400">${esc(cl?.dept||'')} ${esc(cl?.name||'')} · ${fmt(o.createdAt)}</div></div>
+        </div>
+        <span class="status-badge status-${o.status}">${STATUS_LABELS[o.status]}</span>
+      </div>
+    </div>`;}).join('')}
+  </div>`:''}`;
+}
+
+// ── Orders ─────────────────────────────────────────────────
+function ordersPage(){
+  const all=Store.data.orders;
+  const tabs={all:'전체',submitted:'접수대기',quoted:'견적발송',in_progress:'진행중',completed:'완료',cancelled:'취소'};
+  const isProg=s=>['quote_approved','in_progress','proof_review','proof_approved','delivering'].includes(s);
+  const filtered=orderTab==='all'?all:orderTab==='in_progress'?all.filter(o=>isProg(o.status)):all.filter(o=>o.status===orderTab);
+  return `
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-2xl font-extrabold text-gray-900">주문 관리</h2>
+    <div class="text-sm text-gray-500">총 ${all.length}건</div>
+  </div>
+  <div class="flex gap-2 flex-wrap mb-5">
+    ${Object.entries(tabs).map(([k,v])=>{
+      const cnt=k==='all'?all.length:k==='in_progress'?all.filter(o=>isProg(o.status)).length:all.filter(o=>o.status===k).length;
+      return `<button class="cat-tab${orderTab===k?' active':''}" onclick="orderTab='${k}';render()">${v} <span class="opacity-70 text-xs">${cnt}</span></button>`;
+    }).join('')}
+  </div>
+  <div>
+    ${filtered.length?[...filtered].reverse().map(o=>{
+      const cl=Store.data.users.find(u=>u.id===o.clientId);
+      const q=Store.data.quotes.find(x=>x.orderId===o.id);
+      return `<div class="order-row" onclick="go('order-detail','${o.id}')">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">${ORDER_ICONS[o.type]||'📦'}</span>
+            <div>
+              <div class="font-semibold text-gray-800">${esc(o.title)}</div>
+              <div class="text-xs text-gray-400">${o.orderNo} · ${esc(cl?.dept||'')} ${esc(cl?.name||'')} · ${fmt(o.createdAt)}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            ${q?`<span class="text-xs text-gray-500">${comma(quoteTotal(q))}원</span>`:''}
+            <span class="status-badge status-${o.status}">${STATUS_LABELS[o.status]}</span>
+            <div class="flex gap-1" onclick="event.stopPropagation()">
+              ${o.status==='submitted'?`<button class="btn-primary text-xs px-3 py-1.5 font-semibold" onclick="go('quote-builder','${o.id}')">견적 작성</button>`:''}
+              ${nextStatusFor(o)?`<button class="btn-green text-white text-xs px-3 py-1.5 font-semibold" onclick="advanceStatus('${o.id}')">→ ${STATUS_LABELS[nextStatusFor(o)]}</button>`:o.status==='quoted'?`<span class="text-xs text-amber-700">고객 승인 대기</span>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join(''):'<div class="card-base p-10 text-center text-gray-400">해당하는 주문이 없습니다.</div>'}
+  </div>`;
+}
+
+// ── Order Detail (Admin) ───────────────────────────────────
+function detailPage(id){
+  const o=Store.data.orders.find(x=>x.id===id);
+  if(!o)return '<p class="text-center py-20 text-gray-400">주문을 찾을 수 없습니다.</p>';
+  const q=Store.data.quotes.find(x=>x.orderId===id);
+  const cl=Store.data.users.find(u=>u.id===o.clientId);
+  const rating=(Store.data.ratings||[]).find(r=>r.orderId===id);
+  const ratingHTML=rating?`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:14px 16px;margin-top:12px">
+    <div class="text-sm font-bold text-amber-700 mb-2">⭐ 수요자 만족도 평가</div>
+    <div class="flex items-center gap-2 mb-1"><span class="text-xl">${'⭐'.repeat(rating?rating.stars:0)}${'☆'.repeat(rating?5-rating.stars:5)}</span><span class="font-bold text-amber-600">${rating?rating.stars:0}점</span></div>
+    ${rating&&rating.comment?`<p class="text-sm text-gray-600 mt-1">"${rating.comment}"</p>`:''}
+    <div class="text-xs text-gray-400 mt-1">${rating?fmt(rating.date):''} 작성</div>
+  </div>`:'<div class="text-sm text-gray-400 text-center py-3 mt-2">⏳ 수요자의 만족도 평가를 기다리는 중...</div>';
+  const msgs=Store.data.messages.filter(x=>x.orderId===id);
+  const steps=['submitted','quoted','quote_approved','in_progress','delivering','completed'];
+  const cur=steps.indexOf(['proof_review','proof_approved'].includes(o.status)?'in_progress':o.status);
+  const nextStatus=nextStatusFor(o);
+  return `
+  <div class="max-w-3xl">
+    <div class="flex items-center gap-3 mb-5">
+      <button class="btn-ghost text-xl" onclick="go('orders')">←</button>
+      <div class="flex-1">
+        <h2 class="text-xl font-extrabold text-gray-900">${esc(o.title)}</h2>
+        <div class="text-xs text-gray-400">${o.orderNo} · ${fmt(o.createdAt)}</div>
+      </div>
+      <span class="status-badge status-${o.status}">${STATUS_LABELS[o.status]}</span>
+    </div>
+
+    <div class="card-base p-5 mb-4">
+      <div class="text-sm font-bold text-gray-600 mb-4">진행 현황</div>
+      <div class="flex items-center overflow-x-auto pb-2">
+        ${steps.map((s,i)=>`<div class="flex items-center flex-shrink-0">
+          <div class="flex flex-col items-center gap-1">
+            <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:${i<cur?'var(--blue2)':i===cur?'#fff':'#e8eef8'};color:${i<cur?'#fff':i===cur?'var(--blue2)':'#8ca0bc'};${i===cur?'border:2.5px solid var(--blue2)':''}">${i<cur?'✓':i+1}</div>
+            <div class="text-xs ${i<=cur?'text-blue-700 font-semibold':'text-gray-400'}" style="white-space:nowrap">${STATUS_LABELS[s]}</div>
+          </div>
+          ${i<steps.length-1?`<div style="width:36px;height:2px;margin:0 4px;margin-bottom:14px;background:${i<cur?'var(--blue2)':'#e8eef8'}"></div>`:''}
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card-base p-5 mb-4">
+      <div class="font-bold text-gray-700 mb-3">주문 정보</div>
+      <div class="grid grid-cols-2 gap-y-3 text-sm">
+        <div><span class="text-gray-400 block">부서·담당자</span><span class="font-semibold">${esc(cl?.dept||'')} ${esc(cl?.name||'')}</span></div>
+        <div><span class="text-gray-400 block">주문 유형</span><span class="font-semibold">${ORDER_ICONS[o.type]} ${ORDER_TYPES[o.type]}</span></div>
+        <div><span class="text-gray-400 block">희망 납품일</span><span class="font-semibold">${fmt(o.desiredDate)}</span></div>
+        <div><span class="text-gray-400 block">납품 장소</span><span class="font-semibold">${esc(o.deliveryAddr||'—')}</span></div>
+        <div><span class="text-gray-400 block">세금계산서</span><span class="font-semibold">${o.taxInvoice==='delivery'?'납품시 발급':'별도 요청시'}</span></div>
+        ${o.taxEmail?`<div><span class="text-gray-400 block">수신 이메일</span><span class="font-semibold">${o.taxEmail}</span></div>`:''}
+        ${o.note?`<div class="col-span-2"><span class="text-gray-400 block">특이사항</span><span class="font-semibold">${esc(o.note)}</span></div>`:''}
+        ${orderDetailRows(o)}
+      </div>
+      ${(o.detail?.photos||[]).length?`<div class="mt-4 pt-4 border-t border-gray-100"><div class="text-xs font-semibold text-gray-500 mb-2">📷 고객 첨부 현장 사진</div><div class="flex gap-2 flex-wrap">${(o.detail.photos).map(b=>`<img src="${b}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:1.5px solid var(--line);cursor:pointer" onclick="window.open(this.src)">`).join('')}</div></div>`:''}
+    </div>
+
+    ${o.status!=='completed'&&o.status!=='cancelled'?`<div class="card-base p-5 mb-4">
+      <div class="font-bold text-gray-700 mb-3">작업</div>
+      <div class="flex gap-3 flex-wrap">
+        ${o.status==='submitted'?`<button class="btn-primary px-5 py-2.5 font-bold" onclick="go('quote-builder','${id}')">📋 견적서 작성</button>`:''}
+        ${nextStatus?`<button class="btn-green text-white px-5 py-2.5 font-bold" onclick="advanceStatus('${id}')">→ ${STATUS_LABELS[nextStatus]}으로 이동</button>`:o.status==='quoted'?`<span class="text-sm text-amber-700 font-semibold">고객의 견적 승인을 기다리는 중입니다.</span>`:''}
+        ${q?`<button class="btn-outline px-5 py-2.5 font-semibold" onclick="printQuote('${id}')">🖨️ 견적서 인쇄</button>`:''}
+        <button class="btn-danger text-white px-5 py-2.5 font-semibold ml-auto" onclick="cancelOrder('${id}')">🚫 주문 취소</button>
+      </div>
+    </div>`:o.status==='completed'?`<div class="card-base p-5 mb-4">
+      <div class="flex gap-3 mb-4">
+        <button class="btn-outline flex-1 py-2.5 font-semibold" onclick="printQuote('${id}')">🖨️ 견적서 인쇄</button>
+        <button class="btn-outline flex-1 py-2.5 font-semibold" onclick="printDelivery('${id}')">🧾 납품서 인쇄</button>
+      </div>
+      ${ratingHTML}
+    </div>`:''}
+
+    ${q?`<div class="card-base p-5 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-bold text-gray-700">📋 견적서</div>
+        <div class="flex gap-2">
+          ${o.status==='submitted'||o.status==='quoted'?`<button class="btn-outline text-xs px-3 py-1.5" onclick="go('quote-builder','${id}')">✏️ 수정</button>`:''}
+          <button class="btn-outline text-xs px-3 py-1.5" onclick="printQuote('${id}')">🖨️ 인쇄</button>
+        </div>
+      </div>
+      <table class="w-full text-sm border-collapse mb-3">
+        <thead><tr class="bg-gray-50 text-gray-500"><th class="text-left p-2 font-semibold">품목</th><th class="text-right p-2 font-semibold">수량</th><th class="text-right p-2 font-semibold">단가</th><th class="text-right p-2 font-semibold">금액</th></tr></thead>
+        <tbody>${q.items.map(it=>`<tr class="border-t border-gray-100"><td class="p-2">${esc(it.name)}<span class="text-xs text-gray-400 block">${esc(it.spec||'')}</span></td><td class="p-2 text-right">${comma(it.qty)} ${esc(it.unit||'')}</td><td class="p-2 text-right">${comma(it.unitPrice)}</td><td class="p-2 text-right font-semibold">${comma(it.amount)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="border-t pt-3 space-y-1 text-sm">
+        <div class="flex justify-between"><span class="text-gray-500">공급가액</span><span>${comma(quoteSub(q))}원</span></div>
+        <div class="flex justify-between"><span class="text-gray-500">부가세 10%</span><span>${comma(quoteVat(q))}원</span></div>
+        <div class="flex justify-between text-lg font-extrabold text-blue-800 pt-2 border-t mt-1"><span>합 계</span><span>${comma(quoteTotal(q))}원</span></div>
+      </div>
+    </div>`:''}
+
+    <div class="card-base p-5">
+      <div class="font-bold text-gray-700 mb-4">💬 메시지</div>
+      <div id="msgArea" style="max-height:280px;overflow-y:auto" class="space-y-3 mb-4">
+        ${msgs.length?msgs.map(m=>{
+          const me=m.senderId===CU.id;
+          const snd=Store.data.users.find(u=>u.id===m.senderId);
+          return `<div class="flex ${me?'justify-end':'justify-start'} gap-2">
+            ${!me?`<div class="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1">${esc((snd?.name||'?')[0])}</div>`:''}
+            <div>
+              ${!me?`<div class="text-xs text-gray-400 mb-1">${esc(snd?.dept||snd?.name||'고객')}</div>`:''}
+              <div class="${me?'msg-me':'msg-other'}">${esc(msgText(m))}</div>
+              <div class="text-xs text-gray-300 mt-1 ${me?'text-right':''}">${(m.createdAt||'').slice(11,16)}</div>
+            </div>
+          </div>`;
+        }).join(''):'<p class="text-center text-gray-400 text-sm py-4">메시지가 없습니다.</p>'}
+      </div>
+      <div class="flex gap-2">
+        <input class="input-base flex-1" id="msgInput" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendMsg('${id}')">
+        <button class="btn-primary px-5 py-2 font-semibold" onclick="sendMsg('${id}')">전송</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Quote Builder ──────────────────────────────────────────
+function quotePage(orderId){
+  const o=Store.data.orders.find(x=>x.id===orderId);
+  if(!o)return '<p class="text-center py-20 text-gray-400">주문을 찾을 수 없습니다.</p>';
+  const cl=Store.data.users.find(u=>u.id===o.clientId);
+  const existing=Store.data.quotes.find(x=>x.orderId===orderId);
+  const items=existing?existing.items:[{name:'',spec:'',qty:1,unit:'개',unitPrice:0,amount:0}];
+  const sub=items.reduce((s,i)=>s+(i.amount||0),0);
+  const vat=Math.floor(sub*0.1);
+  const total=sub+vat;
+  return `
+  <div class="max-w-3xl">
+    <div class="flex items-center gap-3 mb-5">
+      <button class="btn-ghost text-xl" onclick="go('order-detail','${orderId}')">←</button>
+      <div>
+        <h2 class="text-xl font-extrabold text-gray-900">견적서 작성</h2>
+        <div class="text-xs text-gray-400">${o.orderNo} · ${esc(cl?.dept||'')} ${esc(cl?.name||'')}</div>
+      </div>
+    </div>
+    <div class="card-base p-5 mb-4">
+      <div class="font-bold text-gray-700 mb-4">품목 입력</div>
+      <div class="grid text-xs text-gray-500 font-semibold mb-2 px-1 gap-2" style="grid-template-columns:3fr 2fr 1fr 1fr 2fr 2fr auto">
+        <span>품목명</span><span>규격</span><span>수량</span><span>단위</span><span>단가 (원)</span><span>금액 (원)</span><span></span>
+      </div>
+      <div id="qtRows">
+        ${items.map(it=>`<div class="qt-row grid gap-2 mb-2" style="grid-template-columns:3fr 2fr 1fr 1fr 2fr 2fr auto">
+          <input value="${it.name||''}" placeholder="품목명" oninput="calcQt()">
+          <input value="${it.spec||''}" placeholder="규격">
+          <input value="${it.qty||1}" type="number" min="1" oninput="calcQt()">
+          <input value="${it.unit||'개'}" placeholder="단위">
+          <input value="${it.unitPrice||0}" type="number" min="0" oninput="calcQt()">
+          <input value="${it.amount||0}" type="number" readonly style="background:#f8f9fa;color:#555">
+          <button class="btn-ghost text-red-400 text-lg px-2" onclick="this.closest('.qt-row').remove();calcQt()">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn-outline text-sm px-4 py-2 mt-1" onclick="addQtRow()">+ 행 추가</button>
+    </div>
+    <div class="card-base p-5 mb-4">
+      <div class="flex justify-end">
+        <div class="w-64 space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-gray-500">공급가액</span><span id="qtSub" class="font-semibold">${comma(sub)}원</span></div>
+          <div class="flex justify-between"><span class="text-gray-500">부가세 (10%)</span><span id="qtVat" class="font-semibold">${comma(vat)}원</span></div>
+          <div class="flex justify-between text-lg font-extrabold text-blue-800 pt-2 border-t"><span>합 계</span><span id="qtTotal">${comma(total)}원</span></div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <label class="text-xs font-semibold text-gray-500 block mb-1">비고</label>
+        <input class="input-base" id="qtNote" value="${existing?.note||''}" placeholder="예: 부가세 포함 / 납품 완료 후 계산서 발행">
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn-outline flex-1 py-3" onclick="go('order-detail','${orderId}')">취소</button>
+      <button class="btn-primary flex-1 py-3 font-bold" onclick="saveQuote('${orderId}')">📤 견적서 저장 및 발송</button>
+    </div>
+  </div>`;
+}
+
+function addQtRow(){
+  const c=document.getElementById('qtRows');if(!c)return;
+  const d=document.createElement('div');
+  d.className='qt-row grid gap-2 mb-2';d.style.gridTemplateColumns='3fr 2fr 1fr 1fr 2fr 2fr auto';
+  d.innerHTML='<input placeholder="품목명" oninput="calcQt()"><input placeholder="규격"><input value="1" type="number" min="1" oninput="calcQt()"><input value="개" placeholder="단위"><input value="0" type="number" min="0" oninput="calcQt()"><input value="0" type="number" readonly style="background:#f8f9fa;color:#555"><button class="btn-ghost text-red-400 text-lg px-2" onclick="this.closest(\'.qt-row\').remove();calcQt()">✕</button>';
+  c.appendChild(d);
+}
+
+function calcQt(){
+  const rows=document.querySelectorAll('.qt-row');
+  let sub=0;
+  rows.forEach(r=>{
+    const ins=r.querySelectorAll('input');
+    const qty=Number(ins[2]?.value||0);
+    const price=Number(ins[4]?.value||0);
+    const amt=qty*price;
+    if(ins[5])ins[5].value=amt;
+    sub+=amt;
+  });
+  const vat=Math.floor(sub*0.1);
+  const tot=sub+vat;
+  const s=document.getElementById('qtSub');const v=document.getElementById('qtVat');const t=document.getElementById('qtTotal');
+  if(s)s.textContent=comma(sub)+'원';
+  if(v)v.textContent=comma(vat)+'원';
+  if(t)t.textContent=comma(tot)+'원';
+}
+
+function saveQuote(orderId){
+  const rows=document.querySelectorAll('.qt-row');
+  const items=[];
+  rows.forEach(r=>{
+    const ins=r.querySelectorAll('input');
+    if(ins[0]?.value){
+      const qty=Number(ins[2]?.value||1);
+      const unitPrice=Number(ins[4]?.value||0);
+      items.push({name:ins[0].value,spec:ins[1]?.value||'',qty,unit:ins[3]?.value||'개',unitPrice,amount:qty*unitPrice});
+    }
+  });
+  if(!items.length){toast('품목을 1개 이상 입력하세요.');return}
+  const sub=items.reduce((s,i)=>s+i.amount,0);
+  const vat=Math.floor(sub*0.1);
+  const total=sub+vat;
+  const note=document.getElementById('qtNote')?.value||'';
+  const existing=Store.data.quotes.find(x=>x.orderId===orderId);
+  if(existing){Object.assign(existing,{items,subtotal:sub,supplyAmt:sub,vat,vatAmt:vat,total,totalAmt:total,note,updatedAt:today()});}
+  else{Store.data.quotes.push({id:uid(),orderId,items,subtotal:sub,supplyAmt:sub,vat,vatAmt:vat,total,totalAmt:total,note,createdAt:today()});}
+  const o=Store.data.orders.find(x=>x.id===orderId);
+  if(o&&o.status==='submitted')o.status='quoted';
+  Store.save();
+  toast('✅ 견적서가 저장되었습니다.');
+  go('order-detail',orderId);
+}
+
+// ── Actions ────────────────────────────────────────────────
+function advanceStatus(orderId){
+  const o=Store.data.orders.find(x=>x.id===orderId);if(!o)return;
+  if(o.status==='submitted'){toast('먼저 견적서를 작성해주세요.');go('quote-builder',orderId);return;}
+  if(o.status==='quoted'){toast('고객의 견적 승인을 기다려 주세요.');return;}
+  const next=nextStatusFor(o);if(!next)return;
+  o.status=next;o.staffId=CU.id;Store.save();
+  toast(`✅ 상태 변경: ${STATUS_LABELS[next]}`);render();
+}
+
+function cancelOrder(orderId){
+  if(!confirm('이 주문을 취소하시겠습니까?'))return;
+  const o=Store.data.orders.find(x=>x.id===orderId);if(!o)return;
+  o.status='cancelled';Store.save();toast('주문이 취소되었습니다.');go('orders');
+}
+
+function sendMsg(orderId){
+  const el=document.getElementById('msgInput');
+  const text=el?.value.trim();if(!text)return;
+  Store.data.messages.push({id:uid(),orderId,senderId:CU.id,text,createdAt:new Date().toISOString()});
+  Store.save();el.value='';render();
+  setTimeout(()=>{const a=document.getElementById('msgArea');if(a)a.scrollTop=a.scrollHeight},50);
+}
+
+// ── Catalog Management ─────────────────────────────────────
+function catalogPage(){
+  const cats={all:'전체',furniture:'사무용가구',toner:'토너·소모품',cleaning:'청소·위생',banner:'현수막·광고',construction:'수선·공사',service:'용역'};
+  const prods=Store.data.catalog.filter(p=>catFilter==='all'||p.cat===catFilter);
+  return `
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-2xl font-extrabold text-gray-900">🛒 카탈로그 관리</h2>
+    <button class="btn-primary px-5 py-2 font-bold" onclick="showAddProduct()">+ 상품 추가</button>
+  </div>
+  <div class="flex gap-2 flex-wrap mb-5">
+    ${Object.entries(cats).map(([k,v])=>`<button class="cat-tab${catFilter===k?' active':''}" onclick="catFilter='${k}';render()">${v}</button>`).join('')}
+  </div>
+  <div class="card-base overflow-hidden">
+    <table class="w-full text-sm">
+      <thead><tr class="bg-gray-50 text-gray-500 text-xs font-semibold"><th class="text-left p-3">아이콘</th><th class="text-left p-3">상품명</th><th class="text-left p-3">규격</th><th class="text-right p-3">단가</th><th class="text-left p-3">단위</th><th class="text-left p-3">카테고리</th><th class="text-center p-3">노출</th><th class="text-center p-3">관리</th></tr></thead>
+      <tbody>
+        ${prods.map(p=>`<tr class="border-t border-gray-100 hover:bg-gray-50">
+          <td class="p-3 text-xl">${p.icon||'📦'}</td>
+          <td class="p-3 font-semibold text-gray-800">${esc(p.name)}</td>
+          <td class="p-3 text-gray-500">${esc(p.spec||'')}</td>
+          <td class="p-3 text-right font-semibold text-blue-700">${comma(p.price)}</td>
+          <td class="p-3 text-gray-500">${p.unit}</td>
+          <td class="p-3 text-gray-500">${cats[p.cat]||p.cat}</td>
+          <td class="p-3 text-center"><div class="toggle${p.visible?' on':''} mx-auto" onclick="toggleProduct('${p.id}')"></div></td>
+          <td class="p-3 text-center"><button class="btn-ghost text-red-400 text-sm" onclick="deleteProduct('${p.id}')">삭제</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    ${prods.length===0?'<div class="text-center py-10 text-gray-400 text-sm">상품이 없습니다.</div>':''}
+  </div>
+  <div id="addProductModal" style="display:none" class="modal-bg" onclick="if(event.target===this)closeAddProduct()">
+    <div class="modal-box">
+      <h3 class="text-xl font-extrabold text-gray-900 mb-5">상품 추가</h3>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">카테고리</label>
+          <select class="input-base" id="newCat">
+            ${Object.entries(cats).filter(([k])=>k!=='all').map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">아이콘 (이모지)</label><input class="input-base" id="newIcon" placeholder="📄" value="📦"></div>
+      </div>
+      <div class="mb-3"><label class="text-xs font-semibold text-gray-500 block mb-1">상품명 *</label><input class="input-base" id="newName" placeholder="상품명 입력"></div>
+      <div class="mb-3"><label class="text-xs font-semibold text-gray-500 block mb-1">규격</label><input class="input-base" id="newSpec" placeholder="규격 또는 사양"></div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">단가 (원) *</label><input class="input-base" id="newPrice" type="number" min="0" placeholder="0"></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">단위</label><input class="input-base" id="newUnit" placeholder="개, 박스, 평 등"></div>
+      </div>
+      <div class="mb-5"><label class="text-xs font-semibold text-gray-500 block mb-1">설명</label><input class="input-base" id="newDesc" placeholder="간단한 상품 설명"></div>
+      <div class="flex gap-3">
+        <button class="btn-outline flex-1 py-3" onclick="closeAddProduct()">취소</button>
+        <button class="btn-primary flex-1 py-3 font-bold" onclick="saveProduct()">저장</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showAddProduct(){const m=document.getElementById('addProductModal');if(m)m.style.display='flex'}
+function closeAddProduct(){const m=document.getElementById('addProductModal');if(m)m.style.display='none'}
+function saveProduct(){
+  const name=document.getElementById('newName')?.value.trim();
+  const price=Number(document.getElementById('newPrice')?.value||0);
+  if(!name){toast('상품명을 입력하세요.');return}
+  Store.data.catalog.push({id:uid(),cat:document.getElementById('newCat')?.value||'supplies',icon:document.getElementById('newIcon')?.value||'📦',name,spec:document.getElementById('newSpec')?.value||'',price,unit:document.getElementById('newUnit')?.value||'개',desc:document.getElementById('newDesc')?.value||'',visible:true});
+  Store.save();toast('✅ 상품이 추가되었습니다.');closeAddProduct();render();
+}
+function toggleProduct(id){const p=Store.data.catalog.find(x=>x.id===id);if(p){p.visible=!p.visible;Store.save();render();}}
+function deleteProduct(id){if(!confirm('이 상품을 삭제하시겠습니까?'))return;Store.data.catalog=Store.data.catalog.filter(x=>x.id!==id);Store.save();render();}
+
+// ── Docs (Admin Upload) ────────────────────────────────────
+function docsPage(){
+  const types=[{id:'bizreg',name:'사업자등록증',icon:'🏢'},{id:'bankbook',name:'통장 사본',icon:'🏦'},{id:'seal',name:'인감증명서',icon:'📮'},{id:'id',name:'대표자 신분증 사본',icon:'🪪'},{id:'bizcert',name:'사업자 등록증명원',icon:'📋'}];
+  return `
+  <div class="max-w-2xl">
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-2">📂 제출서류 관리</h2>
+    <p class="text-gray-500 text-sm mb-5">파일을 업로드하면 수요자 사이트에서 다운로드할 수 있습니다.</p>
+    <div class="card-base p-5">
+      ${types.map(dt=>{const doc=(Store.data.docs||[]).find(d=>d.type===dt.id);return`
+      <div class="flex items-center justify-between py-4 border-b border-gray-100 last:border-0">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">${dt.icon}</span>
+          <div>
+            <div class="font-semibold">${dt.name}</div>
+            ${doc?`<div class="text-xs text-green-600 font-semibold">✅ 등록됨 · ${fmt(doc.date)} · ${doc.filename||''}</div>`:'<div class="text-xs text-gray-300">미등록</div>'}
+          </div>
+        </div>
+        <div class="flex gap-2">
+          ${doc?`<button class="btn-danger text-white text-xs px-3 py-1.5" onclick="removeDoc('${dt.id}')">삭제</button>`:''}
+          <label class="btn-primary px-4 py-2 text-sm font-semibold cursor-pointer" style="display:inline-flex;align-items:center">
+            📤 ${doc?'재업로드':'업로드'}
+            <input type="file" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDoc('${dt.id}',this)">
+          </label>
+        </div>
+      </div>`;}).join('')}
+    </div>
+  </div>`;
+}
+
+function uploadDoc(type,input){
+  const file=input?.files?.[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    if(!Store.data.docs)Store.data.docs=[];
+    Store.data.docs=Store.data.docs.filter(d=>d.type!==type);
+    Store.data.docs.push({type,data:e.target.result,filename:file.name,date:today()});
+    Store.save();toast(`✅ ${file.name} 업로드 완료`);render();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeDoc(type){
+  if(!confirm('이 파일을 삭제하시겠습니까?'))return;
+  Store.data.docs=(Store.data.docs||[]).filter(d=>d.type!==type);
+  Store.save();toast('파일이 삭제되었습니다.');render();
+}
+
+// ── Settings ───────────────────────────────────────────────
+function settingsPage(){
+  const s=Store.data.settings;
+  return `
+  <div class="max-w-2xl">
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-5">⚙️ 설정</h2>
+    <div class="card-base p-6 mb-4">
+      <h3 class="font-bold text-gray-700 mb-4">업체 정보</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">상호명</label><input class="input-base" id="sBizName" value="${s.bizName||''}"></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">사업자등록번호</label><input class="input-base" id="sBizNo" value="${s.bizNo||''}"></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">대표자명</label><input class="input-base" id="sCeo" value="${s.ceo||''}"></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">전화번호</label><input class="input-base" id="sPhone" value="${s.phone||''}"></div>
+        <div class="col-span-2"><label class="text-xs font-semibold text-gray-500 block mb-1">주소</label><input class="input-base" id="sAddr" value="${s.addr||''}"></div>
+        <div class="col-span-2"><label class="text-xs font-semibold text-gray-500 block mb-1">계좌번호 (은행명 포함)</label><input class="input-base" id="sBank" value="${s.bank||''}"></div>
+      </div>
+      <button class="btn-primary px-8 py-3 font-bold mt-5" onclick="saveSettings()">저장</button>
+    </div>
+    <div class="card-base p-6">
+      <h3 class="font-bold text-gray-700 mb-3">데이터 관리</h3>
+      <p class="text-sm text-gray-500 mb-4">현재 모든 데이터는 브라우저 localStorage(키: b2g_v3)에 저장됩니다. 수요자 사이트와 동일한 데이터를 공유합니다.</p>
+      <button class="btn-danger text-white px-5 py-2 font-semibold text-sm" onclick="resetAll()">⚠️ 전체 데이터 초기화</button>
+    </div>
+  </div>`;
+}
+
+function saveSettings(){
+  const get=id=>document.getElementById(id)?.value||'';
+  Store.data.settings={bizName:get('sBizName'),bizNo:get('sBizNo'),ceo:get('sCeo'),phone:get('sPhone'),addr:get('sAddr'),bank:get('sBank')};
+  Store.save();toast('✅ 설정이 저장되었습니다.');
+}
+
+function resetAll(){
+  if(!confirm('모든 데이터가 초기화됩니다. 계속하시겠습니까?'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  Store.data={users:[],orders:[],quotes:[],messages:[],docs:[],catalog:[],cart:{},mallOrders:[],mileage:{},settings:{bizName:'제천 납품업체',bizNo:'123-45-67890',ceo:'홍길동',phone:'043-123-4567',addr:'충북 제천시 의림대로 126',bank:'농협 301-0012-3456-71'}};
+  Store.seed();toast('데이터가 초기화되었습니다.');CU=null;go('login');
+}
+
+// ── Print ──────────────────────────────────────────────────
+function printQuote(orderId){
+  const o=Store.data.orders.find(x=>x.id===orderId);
+  const q=Store.data.quotes.find(x=>x.orderId===orderId);
+  const cl=Store.data.users.find(u=>u.id===o?.clientId);
+  const s=Store.data.settings;
+  if(!o||!q){toast('견적서가 없습니다.');return}
+  const qNo=`Q-${new Date().getFullYear()}-${String(Store.data.quotes.indexOf(q)+1).padStart(3,'0')}`;
+  const w=window.open('','_blank','width=800,height=950');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>견적서 ${qNo}</title>
+  <style>body{font-family:'Malgun Gothic',sans-serif;padding:32px;max-width:720px;margin:0 auto;font-size:13px;color:#111}
+  h1{text-align:center;font-size:24px;letter-spacing:10px;border-bottom:3px solid #07182f;padding-bottom:12px;color:#07182f;margin-bottom:20px}
+  .r2{display:flex;gap:20px;margin-bottom:16px}.bx{flex:1;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:12px}
+  .bx strong{display:block;font-size:10px;color:#888;margin-bottom:4px}
+  table{width:100%;border-collapse:collapse;margin:16px 0}
+  th{background:#07182f;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+  td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}
+  .tot{text-align:right;margin-top:10px;border-top:2px solid #07182f;padding-top:10px}
+  .tr{display:flex;justify-content:flex-end;gap:40px;margin:3px 0;font-size:13px}
+  .grand{font-size:18px;font-weight:900;color:#07182f}
+  .sig{display:flex;justify-content:flex-end;margin-top:36px}
+  .sb{border:1px solid #ccc;padding:12px 24px;text-align:center;border-radius:8px;min-height:72px;width:180px}
+  </style></head><body>
+  <h1>견 적 서</h1>
+  <div class="r2">
+    <div class="bx"><strong>문서번호 / 작성일</strong>${qNo} &nbsp;/&nbsp; ${fmt(q.createdAt)}</div>
+    <div class="bx"><strong>수 신</strong>제천시청 ${esc(cl?.dept||'')} ${esc(cl?.name||'')}님</div>
+  </div>
+  <div class="r2">
+    <div class="bx"><strong>공급자</strong>${s.bizName}<br>사업자번호: ${s.bizNo}<br>대표자: ${s.ceo}<br>전화: ${s.phone}<br>주소: ${s.addr}<br>계좌: ${s.bank}</div>
+    <div class="bx"><strong>주문 정보</strong>주문번호: ${o.orderNo}<br>유형: ${ORDER_TYPES[o.type]||o.type}<br>희망납품일: ${fmt(o.desiredDate)}<br>납품장소: ${o.deliveryAddr||''}</div>
+  </div>
+  <table><thead><tr><th>품목명</th><th>규격</th><th>수량</th><th>단위</th><th>단가</th><th style="text-align:right">금액</th></tr></thead>
+  <tbody>${q.items.map(it=>`<tr><td>${esc(it.name)}</td><td>${esc(it.spec||'')}</td><td>${comma(it.qty)}</td><td>${esc(it.unit||'')}</td><td>${comma(it.unitPrice)}</td><td style="text-align:right">${comma(it.amount)}</td></tr>`).join('')}</tbody></table>
+  <div class="tot">
+    <div class="tr"><span>공급가액</span><span>${comma(quoteSub(q))}원</span></div>
+    <div class="tr"><span>부가세 (10%)</span><span>${comma(quoteVat(q))}원</span></div>
+    <div class="tr grand"><span>합 계</span><span>${comma(quoteTotal(q))}원</span></div>
+  </div>
+  ${q.note?`<p style="font-size:12px;color:#666;margin-top:12px">※ ${q.note}</p>`:''}
+  <div class="sig"><div class="sb"><div style="font-size:11px;color:#888;margin-bottom:20px">공급자 (인)</div>${s.bizName}</div></div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+function printDelivery(orderId){
+  const o=Store.data.orders.find(x=>x.id===orderId);
+  const q=Store.data.quotes.find(x=>x.orderId===orderId);
+  const cl=Store.data.users.find(u=>u.id===o?.clientId);
+  const s=Store.data.settings;
+  if(!o){toast('주문을 찾을 수 없습니다.');return}
+  const dNo=`D-${new Date().getFullYear()}-${String(Store.data.orders.indexOf(o)+1).padStart(3,'0')}`;
+  const w=window.open('','_blank','width=800,height=950');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>납품서 ${dNo}</title>
+  <style>body{font-family:'Malgun Gothic',sans-serif;padding:32px;max-width:720px;margin:0 auto;font-size:13px}
+  h1{text-align:center;font-size:24px;letter-spacing:8px;border-bottom:3px solid #07182f;padding-bottom:10px;color:#07182f;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;margin:16px 0}th{background:#07182f;color:#fff;padding:8px;text-align:left;font-size:12px}td{padding:7px;border-bottom:1px solid #eee;font-size:12px}
+  .sigs{display:flex;gap:20px;justify-content:flex-end;margin-top:48px}
+  .sb{border:1px solid #ccc;padding:12px 20px;width:160px;text-align:center;border-radius:8px;min-height:80px}
+  </style></head><body>
+  <h1>납 품 서</h1>
+  <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:13px">
+    <div><b>문서번호:</b> ${dNo} &nbsp; <b>납품일:</b> ${fmt(today())}</div>
+    <div><b>수신:</b> 제천시청 ${esc(cl?.dept||'')} ${esc(cl?.name||'')}님</div>
+  </div>
+  <table><thead><tr><th>품목명</th><th>규격</th><th>수량</th><th>단위</th>${q?'<th style="text-align:right">단가</th><th style="text-align:right">금액</th>':''}</tr></thead>
+  <tbody>${q?q.items.map(it=>`<tr><td>${esc(it.name)}</td><td>${esc(it.spec||'')}</td><td>${comma(it.qty)}</td><td>${esc(it.unit||'')}</td><td style="text-align:right">${comma(it.unitPrice)}</td><td style="text-align:right">${comma(it.amount)}</td></tr>`).join(''):`<tr><td colspan="4">${esc(o.title)}</td></tr>`}</tbody></table>
+  ${q?`<div style="text-align:right;font-size:16px;font-weight:900;color:#07182f;border-top:2px solid #07182f;padding-top:8px;margin-top:8px">합 계: ${comma(quoteTotal(q))}원</div>`:''}
+  <div class="sigs">
+    <div class="sb"><div style="font-size:11px;color:#888;margin-bottom:18px">납품 확인자 (인)</div>${esc(cl?.dept||'')}<br>${esc(cl?.name||'')}</div>
+    <div class="sb"><div style="font-size:11px;color:#888;margin-bottom:18px">납품자 (인)</div>${s.bizName}<br>${s.ceo}</div>
+  </div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── Toast & bind ───────────────────────────────────────────
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+function bind(){
+  const ma=document.getElementById('msgArea');if(ma)ma.scrollTop=ma.scrollHeight;
+}
+
+// ── Init ───────────────────────────────────────────────────
+Store.load();
+render();
+</script>
+</body>
+</html>

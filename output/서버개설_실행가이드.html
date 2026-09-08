@@ -1,0 +1,346 @@
+<title>서버 개설 실행 가이드 — 제천 B2G 납품관리</title>
+<style>
+  :root{
+    --bg:#eef5f3; --bg-a:#f6fbfa; --bg-b:#e2eeea;
+    --surface:#ffffff; --surface-2:#f2f7f6;
+    --line:#d7e6e2; --line-strong:#b9d8d1;
+    --ink:#0c2233; --muted:#5c6f72;
+    --navy:#0c3461; --accent:#0d9488; --accent-deep:#0a7065;
+    --gold:#9a6207; --gold-bg:#faf0da; --gold-line:#e3c581;
+    --you-bg:#eef4ff; --you-ink:#1d3a8a; --you-line:#c7d8fb;
+    --me-bg:#eafaf5; --me-ink:#0a6e56; --me-line:#b9ebd8;
+    --mono: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    --sans: -apple-system,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
+    --r-lg:20px; --r-md:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0a161c; --bg-a:#0c1b22; --bg-b:#08131a;
+      --surface:#101f27; --surface-2:#0c1920;
+      --line:#1e343c; --line-strong:#2b4a52;
+      --ink:#dcebee; --muted:#8fa6ab;
+      --navy:#bcdcff; --accent:#39d6c4; --accent-deep:#7de9db;
+      --gold:#e8bb5b; --gold-bg:#26200f; --gold-line:#5a4a1f;
+      --you-bg:#131f33; --you-ink:#9db8f5; --you-line:#28406e;
+      --me-bg:#0e2620; --me-ink:#6fe3c2; --me-line:#1d4a3d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a161c; --bg-a:#0c1b22; --bg-b:#08131a;
+    --surface:#101f27; --surface-2:#0c1920;
+    --line:#1e343c; --line-strong:#2b4a52;
+    --ink:#dcebee; --muted:#8fa6ab;
+    --navy:#bcdcff; --accent:#39d6c4; --accent-deep:#7de9db;
+    --gold:#e8bb5b; --gold-bg:#26200f; --gold-line:#5a4a1f;
+    --you-bg:#131f33; --you-ink:#9db8f5; --you-line:#28406e;
+    --me-bg:#0e2620; --me-ink:#6fe3c2; --me-line:#1d4a3d;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef5f3; --bg-a:#f6fbfa; --bg-b:#e2eeea;
+    --surface:#ffffff; --surface-2:#f2f7f6;
+    --line:#d7e6e2; --line-strong:#b9d8d1;
+    --ink:#0c2233; --muted:#5c6f72;
+    --navy:#0c3461; --accent:#0d9488; --accent-deep:#0a7065;
+    --gold:#9a6207; --gold-bg:#faf0da; --gold-line:#e3c581;
+    --you-bg:#eef4ff; --you-ink:#1d3a8a; --you-line:#c7d8fb;
+    --me-bg:#eafaf5; --me-ink:#0a6e56; --me-line:#b9ebd8;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:
+      radial-gradient(ellipse 900px 480px at 12% -8%, var(--bg-a) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 100%);
+    background-color:var(--bg);
+    color:var(--ink); line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px 100px;}
+
+  .masthead{padding:50px 0 26px;border-bottom:1px solid var(--line);margin-bottom:30px;}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-deep);font-weight:600;display:flex;align-items:center;gap:8px;}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  h1.title{font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.01em;text-wrap:balance;color:var(--navy);margin:10px 0 10px;}
+  .lede{font-size:15.5px;color:var(--muted);max-width:64ch;margin:0;}
+
+  .secnav{position:sticky;top:0;z-index:20;display:flex;gap:4px;overflow-x:auto;padding:10px 0;margin-bottom:36px;background:linear-gradient(180deg,var(--bg-a) 65%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);scrollbar-width:none;}
+  .secnav::-webkit-scrollbar{display:none;}
+  .secnav a{flex-shrink:0;font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap;}
+  .secnav a:hover{color:var(--accent-deep);border-color:var(--line-strong);}
+
+  section{margin-bottom:54px;scroll-margin-top:56px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+  .sec-num{font-family:var(--mono);font-size:12px;color:var(--accent-deep);font-weight:700;}
+  h2{font-size:21px;font-weight:800;letter-spacing:-.005em;margin:0;color:var(--ink);}
+  .sec-note{font-size:13.5px;color:var(--muted);margin:-6px 0 20px;max-width:66ch;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;box-shadow:0 8px 24px -18px rgba(12,52,97,.2);}
+
+  .analogy{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;}
+  @media (max-width:620px){.analogy{grid-template-columns:1fr;}}
+  .analogy .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px;}
+  .analogy .box h4{margin:0 0 6px;font-size:14px;color:var(--ink);}
+  .analogy .box p{margin:0;font-size:12.5px;color:var(--muted);}
+  .analogy .arrow{display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--accent-deep);}
+  @media (max-width:620px){.analogy .arrow{transform:rotate(90deg);padding:6px 0;}}
+  .analogy .box.now{border-color:var(--gold-line);background:var(--gold-bg);}
+  .analogy .box.later{border-color:var(--me-line);background:var(--me-bg);}
+
+  .piece-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:640px){.piece-grid{grid-template-columns:1fr;}}
+  .piece{border:1px solid var(--line);border-radius:var(--r-md);padding:18px;background:var(--surface);}
+  .piece .ph{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .piece .icon{width:34px;height:34px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .piece h4{margin:0;font-size:14.5px;color:var(--ink);}
+  .piece .role{font-family:var(--mono);font-size:10px;color:var(--muted);}
+  .piece p{margin:0;font-size:12.5px;color:var(--muted);}
+  .piece .why{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink);}
+  .piece .why b{color:var(--accent-deep);}
+
+  .role-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:640px){.role-split{grid-template-columns:1fr;}}
+  .role-col{border-radius:var(--r-md);padding:18px;border:1.5px solid;}
+  .role-col.you{background:var(--you-bg);border-color:var(--you-line);}
+  .role-col.me{background:var(--me-bg);border-color:var(--me-line);}
+  .role-col h4{margin:0 0 10px;font-size:14.5px;}
+  .role-col.you h4{color:var(--you-ink);}
+  .role-col.me h4{color:var(--me-ink);}
+  .role-col ul{margin:0;padding-left:18px;font-size:12.5px;}
+  .role-col.you ul{color:var(--you-ink);}
+  .role-col.me ul{color:var(--me-ink);}
+  .role-col li{margin-bottom:6px;}
+
+  .tbl-scroll{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--line);}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);}
+  thead th{background:var(--surface-2);color:var(--navy);text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line-strong);white-space:nowrap;}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .free-tag{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--me-bg);color:var(--me-ink);font-weight:700;}
+
+  .step{display:grid;grid-template-columns:52px 1fr;gap:16px;margin-bottom:28px;position:relative;}
+  .step:not(:last-child)::after{content:'';position:absolute;left:25px;top:52px;bottom:-28px;width:2px;background:var(--line-strong);}
+  .step .num{width:52px;height:52px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:16px;flex-shrink:0;z-index:1;}
+  .step-body h4{margin:0 0 4px;font-size:15.5px;color:var(--ink);}
+  .step-body .dur{font-family:var(--mono);font-size:11px;color:var(--accent-deep);font-weight:700;margin-left:8px;}
+  .step-body p{margin:4px 0 8px;font-size:13px;color:var(--muted);}
+  .step-body .who{display:inline-flex;gap:6px;font-size:10.5px;font-family:var(--mono);}
+  .who span{padding:2px 8px;border-radius:999px;font-weight:700;}
+  .who .you{background:var(--you-bg);color:var(--you-ink);}
+  .who .me{background:var(--me-bg);color:var(--me-ink);}
+
+  .faq{border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:10px;background:var(--surface);overflow:hidden;}
+  .faq summary{padding:14px 16px;font-weight:700;font-size:13.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;color:var(--ink);}
+  .faq summary::-webkit-details-marker{display:none;}
+  .faq summary::after{content:'+';font-size:18px;color:var(--muted);font-weight:400;}
+  .faq[open] summary::after{content:'–';}
+  .faq .a{padding:0 16px 16px;font-size:13px;color:var(--muted);}
+
+  .checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .checklist li{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:13px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);}
+  .checklist .box{width:20px;height:20px;border-radius:6px;border:1.75px solid var(--gold-line);background:var(--gold-bg);margin-top:1px;}
+  .checklist .lbl{font-weight:700;font-size:14px;color:var(--ink);}
+  .checklist .desc{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);font-family:var(--mono);}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow"><span class="dot"></span>제천 B2G 납품관리 · 서버 개설 실행 가이드</div>
+    <h1 class="title">서버를 하나 만들어야 하는 이유와, 실제로 만드는 순서</h1>
+    <p class="lede">개발 용어 없이 읽을 수 있도록 썼습니다. "서버"는 우리 회사 전용 캐비닛 겸 자동 비서라고 생각하시면 됩니다 — 지금까지는 이게 없어서 못 하던 일들이, 이걸 만들고 나면 됩니다.</p>
+  </div>
+
+  <nav class="secnav">
+    <a href="#why">① 왜 필요한가</a>
+    <a href="#big">② 전체 그림</a>
+    <a href="#pieces">③ 필요한 것 4가지</a>
+    <a href="#roles">④ 역할 분담</a>
+    <a href="#cost">⑤ 예상 비용</a>
+    <a href="#steps">⑥ 실행 순서</a>
+    <a href="#faq">⑦ 자주 하는 걱정</a>
+    <a href="#actions">⑧ 지금 할 일</a>
+  </nav>
+
+  <!-- ① 왜 필요한가 -->
+  <section id="why">
+    <div class="sec-head"><span class="sec-num">01</span><h2>지금 시스템으로는 안 되는 것들</h2></div>
+    <p class="sec-note">지금 시스템(공급자_납품사이트.html)은 각자의 컴퓨터 브라우저 안에만 데이터를 저장합니다. 그래서 아래 5가지는 코드를 아무리 잘 짜도 "서버"가 있어야만 진짜로 됩니다.</p>
+    <div class="analogy">
+      <div class="box now">
+        <h4>🖥️ 지금 — 브라우저 혼자 처리</h4>
+        <p>내 컴퓨터에서 접속하면 내 데이터만 보임. 다른 컴퓨터·직원 폰에서 보면 안 보임. 카톡·이메일을 실제로 보내거나 받을 방법이 없음. 사진 용량 5MB 넘으면 저장 자체가 막힘.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="box later">
+        <h4>🗄️ 서버 있을 때 — 회사 공용 창고</h4>
+        <p>어느 기기에서 접속하든 같은 데이터를 봄. 이메일이 오면 자동으로 알아채서 접수를 시작함. 카카오 알림톡·세금계산서를 실제로 발송함. 사진 용량 제한이 사실상 사라짐.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② 전체 그림 -->
+  <section id="big">
+    <div class="sec-head"><span class="sec-num">02</span><h2>전체 그림 — 화면은 그대로, 뒤에 창고 하나가 생기는 것</h2></div>
+    <p class="sec-note">지금 아임웹에 넣어놓은 화면(주문 넣고, 견적서 보고, 승인 누르는 그 화면)은 그대로 유지됩니다. 사용자·직원 입장에서 보이는 건 안 바뀝니다. 바뀌는 건 "저장하는 곳"과 "이메일·카톡·세금계산서를 실제로 보내는 뒷단"입니다.</p>
+    <div class="card">
+      <p style="margin:0 0 10px;font-size:13.5px;"><b>지금</b>: 화면 ⇄ 이 컴퓨터의 브라우저 저장소 (localStorage)</p>
+      <p style="margin:0;font-size:13.5px;"><b>서버 있을 때</b>: 화면 ⇄ <b>Supabase</b>(회사 공용 창고) ⇄ 필요할 때만 <b>이메일 자동화·카카오 알림톡·전자세금계산서</b> 세 도우미에게 일을 시킴</p>
+    </div>
+  </section>
+
+  <!-- ③ 필요한 것 4가지 -->
+  <section id="pieces">
+    <div class="sec-head"><span class="sec-num">03</span><h2>필요한 것 4가지</h2></div>
+    <p class="sec-note">전부 회원가입만 하면 바로 쓸 수 있는 기존 서비스입니다. 서버용 컴퓨터를 직접 사서 설치하는 게 아니라, 이미 만들어진 서비스에 우리 회사 계정을 만드는 개념입니다.</p>
+    <div class="piece-grid">
+      <div class="piece">
+        <div class="ph"><div class="icon">🗄️</div><div><h4>Supabase</h4><div class="role">데이터 창고 + 자동화 두뇌</div></div></div>
+        <p>주문·견적·사진·직원 기록을 저장하는 진짜 창고. 지금의 "브라우저 안 저장소"를 대체합니다.</p>
+        <div class="why">왜 필요: <b>모든 기기에서 같은 데이터</b>를 보려면 데이터가 한 곳(중앙)에 있어야 합니다.</div>
+      </div>
+      <div class="piece">
+        <div class="ph"><div class="icon">📧</div><div><h4>Zapier (이메일 자동화)</h4><div class="role">코드 없이 "이메일 오면 알림" 설정</div></div></div>
+        <p>회사 이메일함에 새 메일이 오면 자동으로 시스템에 전달해주는 중계 서비스. 코딩 없이 화면에서 클릭만으로 설정합니다.</p>
+        <div class="why">왜 필요: <b>이메일 도착 → 자동 접수 시작</b>을 하려면 누군가 이메일함을 계속 지켜봐야 하는데, 이걸 대신 해줍니다.</div>
+      </div>
+      <div class="piece">
+        <div class="ph"><div class="icon">💬</div><div><h4>카카오 알림톡 대행사</h4><div class="role">비즈엠·알리고 등 (택1)</div></div></div>
+        <p>카카오톡으로 "접수확인", "납품완료" 같은 정식 알림 메시지를 실제로 보내주는 회사. 카카오와 직접 계약하는 게 아니라 이런 대행사를 거칩니다.</p>
+        <div class="why">왜 필요: 카카오는 개인이 아닌 회사가 직접 알림톡을 못 보내고, 승인받은 대행사를 통해서만 가능합니다.</div>
+      </div>
+      <div class="piece">
+        <div class="ph"><div class="icon">🧾</div><div><h4>전자세금계산서 대행사</h4><div class="role">팝빌·바로빌 등 (택1)</div></div></div>
+        <p>국세청 홈택스에 실제로 세금계산서를 발행·전송해주는 서비스. 지금처럼 번호만 임의로 만드는 게 아니라 진짜 국세청 시스템에 등록됩니다.</p>
+        <div class="why">왜 필요: 세금계산서는 사업자 인증 절차가 있어서, 이런 전문 대행사를 거치는 게 표준적인 방법입니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 역할 분담 -->
+  <section id="roles">
+    <div class="sec-head"><span class="sec-num">04</span><h2>누가 무엇을 하나</h2></div>
+    <p class="sec-note">계정 만들기·계약·비용 결제는 사업자 명의가 필요해서 사장님이 직접 해야 합니다. 그 계정에 연결하는 코드 작업은 제가 합니다.</p>
+    <div class="role-split">
+      <div class="role-col you">
+        <h4>👤 사장님이 할 일</h4>
+        <ul>
+          <li>Supabase / Zapier 회원가입 (이메일만 있으면 5분)</li>
+          <li>카카오 비즈니스 채널 개설 (사업자등록증 필요)</li>
+          <li>알림톡 대행사 계약 및 발신 비용 충전</li>
+          <li>전자세금계산서 대행사 가입 (사업자 인증, 공동인증서)</li>
+          <li>가입 후 발급되는 "키(비밀번호 같은 것)"를 저에게 전달</li>
+        </ul>
+      </div>
+      <div class="role-col me">
+        <h4>🛠️ 제가(개발) 할 일</h4>
+        <ul>
+          <li>Supabase에 주문·견적·직원 데이터 저장 구조 설계</li>
+          <li>지금 화면이 브라우저 저장소 대신 Supabase를 보도록 코드 수정</li>
+          <li>Zapier 자동화와 시스템을 연결하는 코드 작성</li>
+          <li>알림톡·세금계산서 대행사 API를 시스템에 연동</li>
+          <li>전 과정 테스트 및 안전하게 전환</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 예상 비용 -->
+  <section id="cost">
+    <div class="sec-head"><span class="sec-num">05</span><h2>예상 비용</h2></div>
+    <p class="sec-note">아래는 시작 단계에서 흔한 요금제 기준의 대략적인 시세입니다. 실제 대행사 견적·환율·정책 변경에 따라 달라질 수 있어 계약 전 반드시 재확인이 필요합니다.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>항목</th><th>시작 요금제</th><th>규모 커지면</th></tr></thead>
+        <tbody>
+          <tr><td>🗄️ Supabase</td><td><span class="free-tag">무료</span> 소규모 데이터면 충분</td><td>월 $25~ (데이터·트래픽 많아질 때)</td></tr>
+          <tr><td>📧 Zapier</td><td><span class="free-tag">무료</span> 월 100건 자동화</td><td>월 $19.99~ (건수 늘어나면)</td></tr>
+          <tr><td>💬 카카오 알림톡</td><td>발신 1건당 약 15~20원 내외</td><td>월 발송량에 비례</td></tr>
+          <tr><td>🧾 전자세금계산서</td><td>발행 1건당 약 100~200원 내외</td><td>월 발행량에 비례</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-note" style="margin-top:12px;">즉, <b>지금 당장 큰돈이 들지 않습니다</b> — Supabase·Zapier는 무료로 시작 가능하고, 카카오·세금계산서는 실제 보낸 건수만큼만 소액이 나갑니다. 목돈이 들어가는 건 이 단계가 아니라 "제가 코드를 연결하는 작업 시간"입니다.</p>
+  </section>
+
+  <!-- ⑥ 실행 순서 -->
+  <section id="steps">
+    <div class="sec-head"><span class="sec-num">06</span><h2>실행 순서</h2></div>
+    <p class="sec-note">한 번에 다 하지 않고, 위험이 적은 것부터 순서대로 하나씩 켭니다. 이전 단계가 잘 되는 걸 확인하고 다음으로 넘어갑니다.</p>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <h4>Supabase 계정·프로젝트 생성<span class="dur">약 30분</span></h4>
+        <p>이메일로 가입하고 "프로젝트"라는 걸 하나 만듭니다. 이게 우리 회사 전용 창고의 주소가 됩니다.</p>
+        <span class="who"><span class="you">사장님: 가입</span><span class="me">저: 설정값 확인</span></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <h4>데이터 이전 — 브라우저 저장소 → 창고로 이사<span class="dur">2~3일 작업</span></h4>
+        <p>지금 주문·견적·직원 데이터 구조를 창고에 옮기고, 화면이 창고를 보고 동작하도록 코드를 바꿉니다. 이 단계가 끝나면 다른 컴퓨터에서 접속해도 같은 데이터가 보입니다.</p>
+        <span class="who"><span class="me">전부 저</span></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <h4>이메일 자동 접수 연결<span class="dur">약 1일</span></h4>
+        <p>Zapier에 회사 이메일을 연결하고, "새 메일 오면 시스템에 전달"이라는 규칙 하나만 만듭니다. 이제 이메일이 오면 사람이 열어보지 않아도 접수 화면에 자동으로 뜹니다.</p>
+        <span class="who"><span class="you">사장님: Zapier 가입, 메일함 연결 허용</span><span class="me">저: 연결 코드</span></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="step-body">
+        <h4>카카오 알림톡 신청·연동<span class="dur">3~5 영업일 (승인 대기 포함)</span></h4>
+        <p>비즈니스 채널을 열고 대행사와 계약한 뒤, "접수확인", "납품완료" 같은 문구를 미리 등록해서 카카오 승인을 받습니다. 승인이 나면 실제 발송이 가능해집니다.</p>
+        <span class="who"><span class="you">사장님: 채널 개설·계약·문구 승인 신청</span><span class="me">저: 연동 코드</span></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">5</div>
+      <div class="step-body">
+        <h4>전자세금계산서 연동<span class="dur">2~4 영업일</span></h4>
+        <p>대행사에 사업자 인증을 마치면, 시스템에서 "발행" 버튼을 눌렀을 때 진짜 국세청에 세금계산서가 등록되도록 연결합니다.</p>
+        <span class="who"><span class="you">사장님: 가입·사업자 인증</span><span class="me">저: 연동 코드</span></span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">6</div>
+      <div class="step-body">
+        <h4>테스트 &amp; 전환<span class="dur">2~3일</span></h4>
+        <p>가짜 주문 몇 건으로 접수→견적→승인→알림톡→세금계산서까지 전 과정을 실제로 돌려보고, 문제가 없으면 실제 운영으로 전환합니다. 아임웹에 넣어둔 화면 주소는 바뀌지 않습니다.</p>
+        <span class="who"><span class="you">사장님: 최종 확인</span><span class="me">저: 테스트 진행</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑦ FAQ -->
+  <section id="faq">
+    <div class="sec-head"><span class="sec-num">07</span><h2>자주 하는 걱정</h2></div>
+    <details class="faq"><summary>지금 쓰던 데이터(기존 주문 내역)가 사라지나요?</summary><div class="a">아닙니다. 2단계(데이터 이전)에서 지금 브라우저에 있는 데이터를 그대로 창고로 옮깁니다. 옮기기 전에 항상 백업(output 폴더 방식과 동일)을 먼저 남깁니다.</div></details>
+    <details class="faq"><summary>전환하는 동안 시스템을 못 쓰나요?</summary><div class="a">1~5단계는 기존 화면과 별개로 준비되고, 6단계 테스트가 끝난 뒤에만 실제로 전환합니다. 준비 기간 중에는 지금 쓰던 방식 그대로 계속 쓰실 수 있습니다.</div></details>
+    <details class="faq"><summary>개인정보(공무원 이름·연락처)가 안전한가요?</summary><div class="a">Supabase는 데이터를 암호화해서 저장하고 비밀번호로 접근을 통제합니다. 다만 "누가 어떤 데이터를 볼 수 있는지" 권한 설정은 반드시 저와 함께 검토해야 하는 부분이라, 2단계에서 별도로 확인해드리겠습니다.</div></details>
+    <details class="faq"><summary>나중에 마음이 바뀌면 되돌릴 수 있나요?</summary><div class="a">네. 창고(Supabase)에 있는 데이터는 언제든 다시 파일로 내려받을 수 있고, 각 서비스는 언제든 해지 가능합니다. 회사 자산(주문·견적 데이터)이 특정 서비스에 갇히지 않도록 설계합니다.</div></details>
+    <details class="faq"><summary>왜 한꺼번에 하나의 "우리 서버"를 사서 직접 설치하지 않나요?</summary><div class="a">직접 서버 컴퓨터를 사서 운영하려면 보안 관리·정전 대비·소프트웨어 업데이트를 계속 사람이 해야 합니다. Supabase 같은 서비스는 그런 관리를 대신 해주기 때문에, 비개발자가 있는 소규모 사업장에는 훨씬 안전하고 저렴합니다.</div></details>
+  </section>
+
+  <!-- ⑧ 지금 할 일 -->
+  <section id="actions">
+    <div class="sec-head"><span class="sec-num">08</span><h2>지금 당장 할 일</h2></div>
+    <div class="card">
+      <ul class="checklist" style="margin:0;">
+        <li><div class="box"></div><div><div class="lbl">Supabase 무료 가입</div><div class="desc">이메일만 있으면 됩니다. 가입 후 "프로젝트 이름"만 저에게 알려주시면 나머지는 제가 설정합니다.</div></div></li>
+        <li><div class="box"></div><div><div class="lbl">카카오 알림톡 대행사 1곳 결정</div><div class="desc">비즈엠·알리고 중 견적을 받아보시고 마음에 드는 곳을 알려주세요. 결정 전이어도 나머지 단계는 먼저 진행할 수 있습니다.</div></div></li>
+        <li><div class="box"></div><div><div class="lbl">전자세금계산서 대행사 1곳 결정</div><div class="desc">팝빌·바로빌 중 기존에 거래·회계 프로그램에서 이미 쓰고 있는 곳이 있다면 그쪽으로 맞추는 게 제일 간편합니다.</div></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>output/직원카드_실기능구현_방안.md · output/CHANGELOG.md 와 함께 보는 문서입니다.</footer>
+</div>
